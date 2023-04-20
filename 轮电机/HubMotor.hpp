@@ -17,22 +17,15 @@
 using namespace Eigen;
 using namespace std;
 
-class CAN2USB
+class HubMotor
 {
 private:
-    double motorBias[6] = {0, 105.0/180*EIGEN_PI, -10.0/180*EIGEN_PI, 100.0/180*EIGEN_PI, 5.0/180*EIGEN_PI, 0};
-    double motorDir[6] = {1, 1, -1, 1, 1, 1};
-    // double motorThreshold = {-10,};
-    
-    // int isOpen = false;
-    // int isInit     = false;
-    // int isStart  = false;
 public:
+    int SpeedMod = 0;
+    int PositionMod = 1;
     VCI_CAN_OBJ canData[100];
     int canDataNum = 0;
     int sendSleep = 10000;//50ms
-    int motorOpenSleep = 5000000;//5s
-    int motorSpeed = 6000;//6000/10 = 600rpm
 
     void canOpen(void)
     {
@@ -164,219 +157,60 @@ public:
             VCI_Transmit(VCI_USBCAN2, 0, 0, nullData, 1);
     }
 
-    void motorOpen(int ID)
+    void motorInit(int ID,int mod)
     {
-        clearCanData();
-        setCommond(ID, 0x02, 0x1010);
-        sendCommond();
-        usleep(motorOpenSleep);
-    }
+        if(mod == SpeedMod)
+        {
+            clearCanData();
+            //使能电机(锁死)
+            setCommond(0x600 + ID, 8, 0x2B4060000F000000);
+            sendCommond();
 
-    void motorInit(int ID)
-    {
-        clearCanData();
-        //设置位控模式
-        setCommond(0x600 + ID, 8, 0x2F60600001000000);
-        sendCommond();
+            //设置速度控制模式
+            setCommond(0x600 + ID, 8, 0x2F60600003000000);
+            sendCommond();
+        }
+        else if(mod = PositionMod)
+        {
+            clearCanData();
+            //使能电机(锁死)
+            setCommond(0x600 + ID, 8, 0x2B4060000F000000);
+            sendCommond();
 
-        //设置目标速度
-        setCommond(0x600 + ID, 8, 0x2381600000000000 + num2Hex(motorSpeed));
-        sendCommond();
-
-        //设置清除异常
-        setCommond(0x600 + ID, 8, 0x2B40600080000000);
-        sendCommond();
-
-        //设置伺服准备
-        setCommond(0x600 + ID, 8, 0x2B40600006000000);
-        sendCommond();
-
-        //设置伺服等待使能
-        setCommond(0x600 + ID, 8, 0x2B40600007000000);
-        sendCommond();
-
-        // 设置伺服使能
-        setCommond(0x600 + ID, 8, 0x2B4060002F000000);
-        sendCommond();
-
-        // 设置伺服使能
-        setCommond(0x600 + ID, 8, 0x2B4060002F000000);
-        sendCommond();
+            //设置位置控制模式
+            setCommond(0x600 + ID, 8, 0x2F60600001000000);
+            sendCommond();
+        }
     }
 
     void motorSetPosition(int ID,double position)
     {
         clearCanData();
-        // setCommond(0x600 + ID, 8, 0x2B40600080000000);
-        // sendCommond();
 
-
-        setCommond(0x600 + ID, 8, 0x237A600000000000 + rad2Hex(position));
+        setCommond(0x600 + ID, 8, 0x237A600000000000 + position);
         sendCommond();
 
-        setCommond(0x600 + ID, 8, 0x2B4060002F000000);
-        sendCommond();
-
-        setCommond(0x600 + ID, 8, 0x2B4060003F000000);
+        //使能电机
+        setCommond(0x600 + ID, 8, 0x2B4060001F000000);
         sendCommond();
     }
 
-    void changeMotorID(int ID, int newID)
+    void motorSetSpeed(int ID,double speed)
     {
         clearCanData();
-        setCommond(0x600 + ID, 8, 0x2F26200000000000 + newID*0x1000000);
-        sendCommond();
-        setCommond(0x600 + ID, 8, 0x2310100173617665);
+        setCommond(0x600 + ID, 8, 0x2BF02F0900000000 + speed);
         sendCommond();
     }
 
-    void changeMotorSpeed(int ID, int speed)
+    void motorDisEnable(int ID)
     {
         clearCanData();
-        //设置目标速度
-        setCommond(0x600 + ID, 8, 0x2381600000000000 + num2Hex(speed));
+        //失能电机(解锁)
+        setCommond(0x600 + ID, 8, 0x2B4060000F000000);
         sendCommond();
     }
 
-    double motorReadPosition(int ID)
-    {
-        VCI_CAN_OBJ rec[100];
-        clearCanData();
-        canClear();
-        setCommond(0x600 + ID, 8, 0x4064600000000000);
-        sendCommond();
-        int Len = canRead(rec);
-        if(Len)
-        {
-            int i;
-            for(i=0;i<Len;i++)
-            {
-                if(ackCheck(ID,0x4064600000000000,rec[i]))
-                {
-                    double position = rec[i].Data[7] * 256 * 256 * 256 + rec[i].Data[6] * 256 * 256 + rec[i].Data[5] * 256 + rec[i].Data[4];
-                    if(position > 0x80000000)
-                        position = position - 0x100000000;
-                    return position / 100 / 16384 * EIGEN_PI;
-                }
-            }
-        }
-        return 10000;
-    }
-
-    int ackCheck(int ID,long data, VCI_CAN_OBJ OBJ)
-    {
-        if(OBJ.ID == 0x580+ID && OBJ.Data[1] == (data/0x1000000000000)%256 && OBJ.Data[2] == (data/0x10000000000)%256)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    void robotReset(void)
-    {
-        int ID;
-        clearCanData();
-        for(ID=1;ID<=6;ID++)
-        {
-            setCommond(0x600 + ID, 8, 0x2F08200001000000);
-        }
-        sendCommond();
-        usleep(1000000);
-        return;
-    }
-
-    void robotInit(void)
-    {
-        int ID;
-        clearCanData();
-        for(ID=1;ID<=6;ID++)
-        {
-            setCommond(ID, 2, 0x1010);
-        }
-        sendCommond();
-        usleep(motorOpenSleep);
-        // return;
-
-        //设置位控模式
-        for(ID=1;ID<=6;ID++)
-        {
-            setCommond(0x600 + ID, 8, 0x2F60600001000000);
-        }
-        sendCommond();
-
-        //设置目标速度
-        for(ID=1;ID<=6;ID++)
-        {
-            setCommond(0x600 + ID, 8, 0x2381600000000000 + num2Hex(motorSpeed));
-        }
-        sendCommond();
-
-        //设置清除异常
-        for(ID=1;ID<=6;ID++)
-        {
-            setCommond(0x600 + ID, 8, 0x2B40600080000000);
-        }
-        sendCommond();
-
-        //设置伺服准备
-        for(ID=1;ID<=6;ID++)
-        {
-            setCommond(0x600 + ID, 8, 0x2B40600006000000);
-        }
-        sendCommond();
-
-        //设置伺服等待使能
-        for(ID=1;ID<=6;ID++)
-        {
-            setCommond(0x600 + ID, 8, 0x2B40600007000000);
-        }
-        sendCommond();
-
-        // 设置伺服使能
-        for(ID=1;ID<=6;ID++)
-        {
-            setCommond(0x600 + ID, 8, 0x2B4060002F000000);
-        }
-        sendCommond();
-
-        // 设置伺服使能
-        for(ID=1;ID<=6;ID++)
-        {
-            setCommond(0x600 + ID, 8, 0x2B4060002F000000);
-        }
-        sendCommond();
-    }
-
-    void motorSetPositionAll(double joint1,double joint2,double joint3,double joint4,double joint5,double joint6)
-    {
-        clearCanData();
-        setCommond(0x601, 8, 0x237A600000000000 + rad2Hex(joint1));
-        setCommond(0x602, 8, 0x237A600000000000 + rad2Hex(joint2));
-        setCommond(0x603, 8, 0x237A600000000000 + rad2Hex(joint3));
-        setCommond(0x604, 8, 0x237A600000000000 + rad2Hex(joint4));
-        setCommond(0x605, 8, 0x237A600000000000 + rad2Hex(joint5));
-        setCommond(0x606, 8, 0x237A600000000000 + rad2Hex(joint6));
-        sendCommond();
-
-        setCommond(0x601, 8, 0x2B4060002F000000);
-        setCommond(0x602, 8, 0x2B4060002F000000);
-        setCommond(0x603, 8, 0x2B4060002F000000);
-        setCommond(0x604, 8, 0x2B4060002F000000);
-        setCommond(0x605, 8, 0x2B4060002F000000);
-        setCommond(0x606, 8, 0x2B4060002F000000);
-        sendCommond();
-
-        setCommond(0x601, 8, 0x2B4060003F000000);
-        setCommond(0x602, 8, 0x2B4060003F000000);
-        setCommond(0x603, 8, 0x2B4060003F000000);
-        setCommond(0x604, 8, 0x2B4060003F000000);
-        setCommond(0x605, 8, 0x2B4060003F000000);
-        setCommond(0x606, 8, 0x2B4060003F000000);
-        sendCommond();
-    }
+    
 
     long rad2Hex(double rad)
     {
@@ -409,47 +243,7 @@ public:
         // cout << "rad " << rad << endl; 
         return rad;
     }
-    
-    void robotSetPosition(int ID, double rad)
-    {
-        double position = rad*motorDir[ID - 1] + motorBias[ID - 1];
-        motorSetPosition(ID,position);
-    }
 
-    double robotReadPosition(int ID)
-    {
-        double position = motorReadPosition(ID);
-        position = (position - motorBias[ID - 1]) * motorDir[ID - 1];
-        return position;
-    }
-
-    void robotSetPositionAll(double rad[6])
-    {
-        double position[6] = {rad[0], rad[1], rad[2], rad[3], rad[4],rad[5]};
-        int i;
-        for(i = 0;i < 6;i++)
-        {
-            position[i] = position[i]*motorDir[i] + motorBias[i];
-        }
-        motorSetPositionAll(position[0], position[1], position[2], position[3], position[4], position[5]);
-    }
-
-    void robotReadPositionAll(double* res)
-    {
-        double rad[6];
-        int i;
-        for(i = 0;i < 6;i++)
-        {
-            rad[i] = motorReadPosition(i + 1);
-            rad[i] = (rad[i] - motorBias[i]) * motorDir[i];
-        }
-        *res = rad[0];res++;
-        *res = rad[1];res++;
-        *res = rad[2];res++;
-        *res = rad[3];res++;
-        *res = rad[4];res++;
-        *res = rad[5];res++;
-    }
 };
 
 
