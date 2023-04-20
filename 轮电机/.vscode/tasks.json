@@ -9,7 +9,7 @@
                 "-g",
                 "${file}",
                 "-lpthread",
-                "-lusbcan",
+                "-lcontrolcan",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}"
             ],
