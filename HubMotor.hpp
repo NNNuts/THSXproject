@@ -200,10 +200,10 @@ public:
         // sendCommond();
     }
 
-    void motorSetSpeed(int ID,double speed)
+    void motorSetSpeed(int ID,double rpm)
     {
         clearCanData();
-        setCommond(0x600 + ID, 8, 0x2BF02F0900000000, speed);
+        setCommond(0x600 + ID, 8, 0x2BF02F0900000000, rpm);
         sendCommond();
     }
 

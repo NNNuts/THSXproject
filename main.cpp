@@ -4,9 +4,9 @@
 #include <string.h>
 #include <chrono>
 #include <mutex>
-#include<fstream>
+#include <fstream>
 #include <Eigen/Dense>
-#include<ctime>
+#include <ctime>
 #include "HubMotor.hpp"
 #define msleep(ms)  usleep((ms)*1000)
 
@@ -61,4 +61,4 @@ int main(int argc, char* argv[])
     rob.motorDisEnable(2);
 
     return 0;
-} 
+}
