@@ -189,10 +189,12 @@ public:
         }
     }
 
-    void motorSetPosition(int ID,double position)
+    
+
+    void motorSetPosition(int ID,double rad)
     {
         clearCanData();
-        setCommond(0x600 + ID, 8, 0x237A600000000000, position);
+        setCommond(0x600 + ID, 8, 0x237A600000000000, rad/EIGEN_PI*4096);
         sendCommond();
 
         //使能电机

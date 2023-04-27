@@ -26,39 +26,41 @@ int main(int argc, char* argv[])
     rob.canInit();
     rob.canStart();
 
-    // rob.setCommond(0x600 + 1, 8, 0x2B4060000F000000);
-    // rob.sendCommond();
-    // exit(1);
+    
 
     // //设置速度控制模式
-    // rob.setCommond(0x600 + 1, 8, 0x2F60600003000000);
-    // rob.sendCommond();
-    // rob.motorClearWarning(1);
-    // rob.motorInit(1,rob.PositionMod);
-    // rob.motorInit(2,rob.PositionMod);
+    // rob.motorInit(3,rob.PositionMod);
 
-    // rob.motorSetPosition(1,10);
+    // rob.motorSetPosition(3,10);
     // usleep(3000000);
-    // rob.motorSetPosition(1,000);
+    // rob.motorSetPosition(3,000);
     // usleep(3000000);
-    // rob.motorDisEnable(1);
+    // rob.motorDisEnable(3);
 
     // exit(1);
 
     //speed
     rob.motorInit(1,rob.SpeedMod);
     rob.motorInit(2,rob.SpeedMod);
+    rob.motorInit(3,rob.SpeedMod);
+    rob.motorInit(4,rob.SpeedMod);
 
     rob.motorSetSpeed(1,200000);
     rob.motorSetSpeed(2,200000);
+    rob.motorSetSpeed(3,600000);
+    rob.motorSetSpeed(4,600000);
     usleep(2000000);
 
     rob.motorSetSpeed(1,0);
     rob.motorSetSpeed(2,0);
+    rob.motorSetSpeed(3,0);
+    rob.motorSetSpeed(4,0);
     usleep(2000000);
 
-    rob.motorDisEnable(1);
-    rob.motorDisEnable(2);
+    // rob.motorDisEnable(1);
+    // rob.motorDisEnable(2);
+    // rob.motorDisEnable(3);
+    // rob.motorDisEnable(4);
 
     return 0;
-}
+} 
