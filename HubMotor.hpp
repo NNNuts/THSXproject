@@ -104,13 +104,21 @@ public:
         canData[canDataNum].RemoteFlag = 0;
         canData[canDataNum].ExternFlag = 0;
         canData[canDataNum].DataLen    = Len;
+        long pass_new = 0;
+        for(int i = 0;i<4;i++)
+        {
+            pass_new *= 256;
+            pass_new += pass % 256;
+            pass /= 256;
+        }
+        //cout<<pass_new<<endl;
         for(int i = Len - 1; i >= 0; i--)
         {
             // canData[canDataNum].Data[i] = data % 256;
-            canData[canDataNum].Data[i] = data % 256 + pass % 256; 
+            canData[canDataNum].Data[i] = data % 256 + pass_new % 256; 
             // cout<<i<<" "<<(int)canData[canDataNum].Data[i]<<" "<<data % 256<<endl;
             data = data / 256;
-            pass = pass / 256;
+            pass_new = pass_new / 256;
             // data > 2;
         }
         canDataNum++;
@@ -202,10 +210,37 @@ public:
         // sendCommond();
     }
 
-    void motorSetSpeed(int ID,double rpm)
+    void motorSetSpeed(int ID,int rpm)
     {
         clearCanData();
-        setCommond(0x600 + ID, 8, 0x2BF02F0900000000, rpm*256*256);
+        setCommond(0x600 + ID, 8, 0x2BF02F0900000000, rpm);
+        sendCommond();
+    }
+
+    void motorChangeTrapezoidalVelocityInPosition(int ID,int rpm)
+    {
+        clearCanData();
+        setCommond(0x600 + ID, 8, 0x2B82600000000000, rpm);
+        sendCommond();
+        setCommond(0x600 + ID, 8, 0x2FE52F0001000000);
+        sendCommond();
+    }
+
+    void motorChangeUpAccelerationInSpeed(int ID,double rps_s)
+    {
+        clearCanData();
+        setCommond(0x600 + ID, 8, 0x2383600000000000, rps_s*256*4096/15625);
+        sendCommond();
+        setCommond(0x600 + ID, 8, 0x2FE52F0001000000);
+        sendCommond();
+    }
+
+    void motorChangeDownAccelerationInSpeed(int ID,double rps_s)
+    {
+        clearCanData();
+        setCommond(0x600 + ID, 8, 0x2384600000000000, rps_s*256*4096/15625);
+        sendCommond();
+        setCommond(0x600 + ID, 8, 0x2FE52F0001000000);
         sendCommond();
     }
 

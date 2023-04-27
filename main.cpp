@@ -31,11 +31,12 @@ int main(int argc, char* argv[])
     //设置速度控制模式
     rob.motorInit(3,rob.PositionMod);
 
-    rob.motorSetPosition(3,20);
+    rob.motorChangeTrapezoidalVelocityInPosition(3,50);
+    rob.motorSetPosition(3,10);
     usleep(3000000);
-    rob.motorSetPosition(3,000);
+    rob.motorSetPosition(3,00);
     usleep(3000000);
-    // rob.motorDisEnable(3);
+    rob.motorDisEnable(3);
 
     exit(1);
 
@@ -44,6 +45,8 @@ int main(int argc, char* argv[])
     // rob.motorInit(2,rob.SpeedMod);
     rob.motorInit(3,rob.SpeedMod);
     // rob.motorInit(4,rob.SpeedMod);
+
+    // rob.motorChangeUpAccelerationInSpeed(1,20);
 
     // rob.motorSetSpeed(1,10);
     // rob.motorSetSpeed(2,10);
@@ -64,3 +67,4 @@ int main(int argc, char* argv[])
 
     return 0;
 } 
+       
