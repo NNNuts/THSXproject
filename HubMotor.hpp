@@ -205,7 +205,7 @@ public:
     void motorSetSpeed(int ID,double rpm)
     {
         clearCanData();
-        setCommond(0x600 + ID, 8, 0x2BF02F0900000000, rpm);
+        setCommond(0x600 + ID, 8, 0x2BF02F0900000000, rpm*256*256);
         sendCommond();
     }
 
@@ -256,7 +256,6 @@ public:
         // cout << "rad " << rad << endl; 
         return rad;
     }
-
 };
 
 
