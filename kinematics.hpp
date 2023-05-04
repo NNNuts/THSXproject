@@ -87,9 +87,7 @@ public:
         return z;
     }
 
-    
-
-    int invest(double x, double y, double z, double* ret)
+    void invest(double x, double y, double z, double* ret)
     {
         double theta1,theta2;
 

@@ -37,7 +37,7 @@ public:
     int flag = 0;
 
     //控制间隔时间（ms）
-    double ControlIntervalTime = 30;
+    double ControlIntervalTime = 3;
 
     //末端运动速度限制movel
     double End_V_max = 32;//末端最大速度(mm/ms)

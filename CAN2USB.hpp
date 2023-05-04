@@ -32,7 +32,7 @@ private:
 public:
     VCI_CAN_OBJ canData[100];
     int canDataNum = 0;
-    int sendSleep = 10000;//50ms
+    int sendSleep = 500;//5ms
     int motorOpenSleep = 5000000;//5s
     int motorSpeed = 10000;//6000/10 = 600rpm
 
@@ -55,8 +55,8 @@ public:
         config.AccCode = 0x00000000;
         config.AccMask = 0x00000000;
         config.Filter  = 0x08;//允许所有类型的数据
-        config.Timing0 = 0x00;/*波特率125 Kbps  0x03  0x1C*/ /*波特率500 Kbps  0x00  0x1C*/
-        config.Timing1 = 0x1C;
+        config.Timing0 = 0x00;/*波特率125 Kbps  0x03  0x1C*/ /*波特率500 Kbps  0x00  0x1C*/ /*波特率1000 Kbps  0x00  0x14*/
+        config.Timing1 = 0x14;
         config.Mode    = 0;//正常模式
         if(VCI_InitCAN(VCI_USBCAN2,0,0,&config)!=1)
         {
@@ -108,7 +108,7 @@ public:
             exit(1);
         }
         canData[canDataNum].ID         = ID;
-        canData[canDataNum].SendType   = 0;
+        canData[canDataNum].SendType   = 1;
         canData[canDataNum].RemoteFlag = 0;
         canData[canDataNum].ExternFlag = 0;
         canData[canDataNum].DataLen    = Len;
@@ -192,32 +192,34 @@ public:
         setCommond(66,8,data);
         canClear();
         sendCommond();
-        usleep(2000);
-        int Len = canRead(rec);
-        if(Len)
-        {
-            int i;
-            for(i=0;i<Len;i++)
-            {
-                if(ackCheck(ID+0x10,0x0001010000000000,rec[i]))
-                {
-                    // cout<<"Ack resive"<<endl;
-                }
-            }
-            // for(i=0;i<Len;i++)
-            // {
-            //     cout<<(unsigned)rec[0].Data[0]<<" "<<(unsigned)rec[0].Data[1]<<" "<<(unsigned)rec[0].Data[2]<<" "<<(unsigned)rec[0].Data[3]<<" "
-            //         <<(unsigned)rec[0].Data[4]<<" "<<(unsigned)rec[0].Data[5]<<" "<<(unsigned)rec[0].Data[6]<<" "<<(unsigned)rec[0].Data[7]<<" "<<endl;
-            // }     
+        // usleep(1000);
+        // int Len = canRead(rec);
+        // if(Len)
+        // {
+        //     int i;
+        //     for(i=0;i<Len;i++)
+        //     {
+        //         if(ackCheck(ID+0x10,0x0001010000000000,rec[i]))
+        //         {
+        //             cout<<"Ack resive"<<endl;
+        //             return;
+        //         }
+        //     }
+        //     // for(i=0;i<Len;i++)
+        //     // {
+        //     //     cout<<(unsigned)rec[0].Data[0]<<" "<<(unsigned)rec[0].Data[1]<<" "<<(unsigned)rec[0].Data[2]<<" "<<(unsigned)rec[0].Data[3]<<" "
+        //     //         <<(unsigned)rec[0].Data[4]<<" "<<(unsigned)rec[0].Data[5]<<" "<<(unsigned)rec[0].Data[6]<<" "<<(unsigned)rec[0].Data[7]<<" "<<endl;
+        //     // }     
             
-        }
+        // }
+        // cout<<"Ack Err"<<endl;
         // cout<<endl;
         // cout << "CanDataSendNum "<< CanDataSendNum<<endl;
     }
 
     void robotSetPositionAll(double rad[2])
     {
-        //cout<<rad[0]<< " " << rad[1]<<endl;
+        // cout<<rad[0]<< " " << rad[1]<<endl;
         robotSetPosition(1,rad[0]*motorDir[0] + motorBias[0]);
         robotSetPosition(2,rad[1]*motorDir[1] + motorBias[1]);
     }

@@ -1,17 +1,18 @@
 #include <iostream>
-#include<stdio.h>
+#include <stdio.h>
 #include <thread>
 #include <signal.h>
 #include <string.h>
 #include <chrono>
 #include <mutex>
-#include<curses.h>
+#include <curses.h>
 #include "controller.hpp"
 #include "kinematics.hpp"
 #include <fstream>
 #include <Eigen/Dense>
 #include <ctime>
-#include "Can232.hpp"
+// #include "Can232.hpp"
+#include "controlcan.h"
 #include "CAN2USB.hpp"
 
 using namespace std;
@@ -55,28 +56,28 @@ int main(int argc, char *argv[])
     rob.canOpen();
     rob.canStart();
 
-    rob.motorChangPID(1,300,0,0,2000000);
-    rob.motorChangPID(2,300,0,0,2000000);
+    rob.motorChangPID(1,30,0,0,500000);
+    rob.motorChangPID(2,30,0,0,500000);
 
     cout << "系统启动" << endl<< endl;
 
     // --------------------test--------------------------
-    TC.invest(-5000,5000,2000,TC.theta_now);
+    TC.invest(-5000,5000,5000,TC.theta_now);
     auto t1 = std::chrono::high_resolution_clock::now();
     rob.robotSetPositionAll(TC.theta_now);
     auto t3 = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> fp_ms = t3-t1;
-    cout<<"实际使用时间 "<<fp_ms.count()<<"ms"<<endl;
+    cout<<"实际使用时间 "<<fp_ms.count()<<"ms"<<endl<<endl;
     // exit(0);
     usleep(2000000);
-    MoveJ(-5000,5000,2000,5000,5000,2000,2);
-    MoveL(5000,5000,2000,-5000,5000,2000,2);
+    MoveJ(-5000,5000,5000, 5000,5000,-5000,2);
+    MoveL( 5000,5000,-5000,-5000,5000,5000,2);
     exit(0);
     //-----------------测试运行结果-----------------
-    //总计26个控制点
+    // 总计26个控制点
     // 理论使用时间 260 ms
     // 实际使用时间 ??? ms
-    //总计32个控制点
+    // 总计32个控制点
     // 理论使用时间 320 ms
     // 实际使用时间 ??? ms
 
@@ -123,7 +124,6 @@ void DrawM(int times)
     for (int i = 0; i < times; i++)
     {
         MoveL(0, 5000, -1000, 4000, 5000, -2000, 1);
-
         MoveL(4000, 5000, -2000, 0, 5000, -1000, 1);
     }
 }

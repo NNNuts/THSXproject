@@ -10,6 +10,7 @@
                 "${file}",
                 "-lpthread",
                 "-lcontrolcan",
+                "-lcurses",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}"
             ],
