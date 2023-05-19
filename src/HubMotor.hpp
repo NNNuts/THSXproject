@@ -4,14 +4,14 @@
 #include <math.h>
 #include <Eigen/Dense>
 #include <iostream>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <pthread.h>
+// #include <stdio.h>
+// #include <sys/types.h>
+// #include <sys/stat.h>
+// #include <fcntl.h>
+// #include <pthread.h>
 
-#include <ctime>
-#include <cstdlib>
+// #include <ctime>
+// #include <cstdlib>
 #include "unistd.h"
 #include "controlcan.h"
 using namespace Eigen;
@@ -25,7 +25,7 @@ public:
     int PositionMod = 1;
     VCI_CAN_OBJ canData[100];
     int canDataNum = 0;
-    int sendSleep = 10000;//50ms
+    int sendSleep = 10;//50ms
 
     void canOpen(void)
     {
@@ -146,7 +146,7 @@ public:
 			printf(" %02X", canData[0].Data[i]);
 		}
         printf("\n");
-        usleep(sendSleep);
+        usleep(sendSleep*1000);
         clearCanData();
     }
 
