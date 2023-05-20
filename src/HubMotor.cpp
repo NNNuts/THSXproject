@@ -20,7 +20,7 @@ HubMotor rob;
 
 void HubMotorCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
 {
-    rob.motorSetSpeed(1,msg->data.at(0));
+    //rob.motorSetSpeed(1,msg->data.at(0));
     // rob.motorSetSpeed(2,msg->data.at(1));
     // rob.motorSetSpeed(3,msg->data.at(2));
     // rob.motorSetSpeed(4,msg->data.at(3));
