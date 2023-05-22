@@ -5,6 +5,7 @@
 // #include <opencv2/highgui.hpp>
 // #include <opencv2/imgproc.hpp>
 // using namespace cv;
+float speed[4] = {0,0,0,0};
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "HubControl");
@@ -23,43 +24,55 @@ int main(int argc, char **argv)
         // endwin();
         switch (ch)             
         {
-            case 'w':
-                msg.data.push_back(1);//自己写的，可行
-                msg.data.push_back(1);
-                msg.data.push_back(1);
-                msg.data.push_back(1);
-                chatter_pub.publish(msg);
+            case 'q':
+                speed[0] = 0.25;
+                speed[1] = 0.25;
+                speed[2] = 0.25;
+                speed[3] = 0.25;
+                
                 break;
             case 'a':
-                msg.data.push_back(-1);//自己写的，可行
-                msg.data.push_back(-1);
-                msg.data.push_back(1);
-                msg.data.push_back(1);
-                chatter_pub.publish(msg);
+                speed[0] = -0.25;
+                speed[1] = -0.25;
+                speed[2] = -0.25;
+                speed[3] = -0.25;
                 break;
-            case 'x':
-                msg.data.push_back(-1);//自己写的，可行
-                msg.data.push_back(-1);
-                msg.data.push_back(-1);
-                msg.data.push_back(-1);
-                chatter_pub.publish(msg);
+            case 'w':
+                speed[0] = 0.5;
+                speed[1] = 0.5;
+                speed[2] = 0.5;
+                speed[3] = 0.5;
                 break;
             case 's':
-                msg.data.push_back(0);//自己写的，可行
-                msg.data.push_back(0);
-                msg.data.push_back(0);
-                msg.data.push_back(0);
-                chatter_pub.publish(msg);
+                speed[0] = -0.5;
+                speed[1] = -0.5;
+                speed[2] = -0.5;
+                speed[3] = -0.5;
+                break;
+            case 'e':
+                speed[0] = 1;
+                speed[1] = 1;
+                speed[2] = 1;
+                speed[3] = 1;
                 break;
             case 'd':
-                msg.data.push_back(1);//自己写的，可行
-                msg.data.push_back(1);
-                msg.data.push_back(-1);
-                msg.data.push_back(-1);
-                chatter_pub.publish(msg);
+                speed[0] = -1;
+                speed[1] = -1;
+                speed[2] = -1;
+                speed[3] = -1;
+                break;
+            case 'r':
+                speed[0] = 0;
+                speed[1] = 0;
+                speed[2] = 0;
+                speed[3] = 0;
                 break;
         }
-        
+        msg.data.push_back(speed[0]);
+        msg.data.push_back(speed[1]);
+        msg.data.push_back(speed[2]);
+        msg.data.push_back(speed[3]);
+        chatter_pub.publish(msg);
         ros::spinOnce();
         loop_rate.sleep();
     }

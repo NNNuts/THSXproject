@@ -26,11 +26,15 @@ public:
     VCI_CAN_OBJ canData[100];
     int canDataNum = 0;
     int sendSleep = 10;//50ms
+    float D = 0.2; //m
+    int motorNum[8] = {4,2,3,1};
 
     void canOpen(void)
     {
         printf("Can卡开始初始化\r\n");//指示程序已运行
-        if(VCI_OpenDevice(VCI_USBCAN2,0,0)==1)//打开设备
+        int err = VCI_OpenDevice(VCI_USBCAN2,0,0);
+        // cout<<err<<endl;
+        if(err==1)//打开设备
         {
             printf(">>open deivce CAN success!\n");//打开设备成功
         }else
@@ -91,7 +95,7 @@ public:
         VCI_ClearBuffer(VCI_USBCAN2, 0, 0);
     }
 
-    void setCommond(int ID, int Len, long data, long pass = 0)
+    void setCommond(int ID, int Len, long data, unsigned long pass = 0)
     {
         // cout<<data<<endl;
         if(canDataNum>=100)
@@ -105,13 +109,14 @@ public:
         canData[canDataNum].ExternFlag = 0;
         canData[canDataNum].DataLen    = Len;
         long pass_new = 0;
+
         for(int i = 0;i<4;i++)
         {
             pass_new *= 256;
             pass_new += pass % 256;
             pass /= 256;
         }
-        //cout<<pass_new<<endl;
+
         for(int i = Len - 1; i >= 0; i--)
         {
             // canData[canDataNum].Data[i] = data % 256;
@@ -133,19 +138,19 @@ public:
         }
         VCI_Transmit(VCI_USBCAN2, 0, 0, canData, canDataNum);
         sendNull();
-        cout << "send " << canDataNum << " data" << endl;
-        printf("CAN2 TX ID:0x%08X", canData[0].ID);
-		if(canData[0].ExternFlag==0) printf(" Standard ");
-		if(canData[0].ExternFlag==1) printf(" Extend   ");
-		if(canData[0].RemoteFlag==0) printf(" Data   ");
-		if(canData[0].RemoteFlag==1) printf(" Remote ");
-		printf("DLC:0x%02X",canData[0].DataLen);
-		printf(" data:0x");
-		for(int i = 0; i < canData[0].DataLen; i++)
-		{
-			printf(" %02X", canData[0].Data[i]);
-		}
-        printf("\n");
+        // cout << "send " << canDataNum << " data" << endl;
+        // printf("CAN2 TX ID:0x%08X", canData[0].ID);
+		// if(canData[0].ExternFlag==0) printf(" Standard ");
+		// if(canData[0].ExternFlag==1) printf(" Extend   ");
+		// if(canData[0].RemoteFlag==0) printf(" Data   ");
+		// if(canData[0].RemoteFlag==1) printf(" Remote ");
+		// printf("DLC:0x%02X",canData[0].DataLen);
+		// printf(" data:0x");
+		// for(int i = 0; i < canData[0].DataLen; i++)
+		// {
+		// 	printf(" %02X", canData[0].Data[i]);
+		// }
+        // printf("\n");
         usleep(sendSleep*1000);
         clearCanData();
     }
@@ -172,6 +177,7 @@ public:
 
     void motorInit(int ID,int mod)
     {
+        ID = motorNum[ID-1];
         if(mod == SpeedMod)
         {
             clearCanData();
@@ -201,6 +207,7 @@ public:
 
     void motorSetPosition(int ID,double rad)
     {
+        ID = motorNum[ID-1];
         clearCanData();
         setCommond(0x600 + ID, 8, 0x237A600000000000, rad/EIGEN_PI*4096);
         sendCommond();
@@ -210,15 +217,17 @@ public:
         // sendCommond();
     }
 
-    void motorSetSpeed(int ID,int rpm)
+    void motorSetSpeed(int ID,float m_s)
     {
+        ID = motorNum[ID-1];
         clearCanData();
-        setCommond(0x600 + ID, 8, 0x2BF02F0900000000, rpm);
+        setCommond(0x600 + ID, 8, 0x2BF02F0900000000, m_s/EIGEN_PI/D*60);
         sendCommond();
     }
 
     void motorChangeTrapezoidalVelocityInPosition(int ID,int rpm)
     {
+        ID = motorNum[ID-1];
         clearCanData();
         setCommond(0x600 + ID, 8, 0x2B82600000000000, rpm);
         sendCommond();
@@ -228,6 +237,7 @@ public:
 
     void motorChangeUpAccelerationInSpeed(int ID,double rps_s)
     {
+        ID = motorNum[ID-1];
         clearCanData();
         setCommond(0x600 + ID, 8, 0x2383600000000000, rps_s*256*4096/15625);
         sendCommond();
@@ -237,6 +247,7 @@ public:
 
     void motorChangeDownAccelerationInSpeed(int ID,double rps_s)
     {
+        ID = motorNum[ID-1];
         clearCanData();
         setCommond(0x600 + ID, 8, 0x2384600000000000, rps_s*256*4096/15625);
         sendCommond();
@@ -246,6 +257,7 @@ public:
 
     void motorDisEnable(int ID)
     {
+        ID = motorNum[ID-1];
         clearCanData();
         //失能电机(解锁)
         setCommond(0x600 + ID, 8, 0x2B40600006000000);
@@ -254,6 +266,7 @@ public:
 
     void motorClearWarning(int ID)
     {
+        ID = motorNum[ID-1];
         clearCanData();
         //失能电机(解锁)
         setCommond(0x600 + ID, 8, 0x2B40600086000000);

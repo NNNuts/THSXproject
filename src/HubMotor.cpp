@@ -10,21 +10,31 @@
 #include "HubMotor.hpp"
 #include "ros/ros.h"
 #include "std_msgs/Float32MultiArray.h"
+#include <signal.h>
 #define msleep(ms)  usleep((ms)*1000)
 
 // using namespace std; 
 // using namespace std::chrono;
 // using namespace Eigen;
 
+
 HubMotor rob;
 
 void HubMotorCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
 {
-    //rob.motorSetSpeed(1,msg->data.at(0));
-    // rob.motorSetSpeed(2,msg->data.at(1));
-    // rob.motorSetSpeed(3,msg->data.at(2));
-    // rob.motorSetSpeed(4,msg->data.at(3));
+    rob.motorSetSpeed(1,-msg->data.at(0));
+    rob.motorSetSpeed(2,-msg->data.at(1));
+    rob.motorSetSpeed(3,msg->data.at(2));
+    rob.motorSetSpeed(4,msg->data.at(3));
     ROS_INFO("HubMotor:speed = [%f],[%f],[%f],[%f]", msg->data.at(0),msg->data.at(1),msg->data.at(2),msg->data.at(3));
+}
+
+void HubMotorExit(int sig)
+{
+	//这里主要进行退出前的数据保存、内存清理、告知其他节点等工作
+    rob.canClose();
+	ROS_INFO("HubMotor shutting down!");
+	ros::shutdown();
 }
 
 
@@ -36,15 +46,18 @@ int main(int argc, char* argv[])
     //exit(0);
     cout << "系统启动" << endl;
 
-    // rob.canOpen();
-    // rob.canInit();
-    // rob.canStart();
+    // rob.canClose();
+    rob.canOpen();
+    rob.canInit();
+    rob.canStart();
 
-    //设置速度控制模式
-    // rob.motorInit(1,rob.SpeedMod);
-    // rob.motorInit(2,rob.SpeedMod);
-    // rob.motorInit(3,rob.SpeedMod);
-    // rob.motorInit(4,rob.SpeedMod);
+    // 设置速度控制模式
+    rob.motorInit(1,rob.SpeedMod);
+    rob.motorInit(2,rob.SpeedMod);
+    rob.motorInit(3,rob.SpeedMod);
+    rob.motorInit(4,rob.SpeedMod);
+
+    signal(SIGINT, HubMotorExit);
 
     ros::Subscriber sub = nh.subscribe("HubControl", 1000, HubMotorCallback);
     ros::spin();
