@@ -24,7 +24,7 @@ void HubMotorCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
         rob.motorDisEnable(2);
         rob.motorDisEnable(3);
         rob.motorDisEnable(4);
-        usleep(3000000);
+        // usleep(3000000);
         if(Mod == Speed)
         {
             // 设置速度控制模式

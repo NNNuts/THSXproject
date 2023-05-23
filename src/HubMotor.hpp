@@ -202,7 +202,8 @@ public:
             setCommond(0x600 + ID, 8, 0x2F60600001000000);
             sendCommond();
             //使能电机(锁死)
-            setCommond(0x600 + ID, 8, 0x2B4060001F000000);
+            // setCommond(0x600 + ID, 8, 0x2B4060001F000000); //绝对位置模式
+            setCommond(0x600 + ID, 8, 0x2B4060000F000000);  //相对位置模式
             sendCommond();
 
             
@@ -215,8 +216,8 @@ public:
     {
         ID = motorNum[ID-1];
         clearCanData();
-        setCommond(0x600 + ID, 8, 0x237A600000000000, m/EIGEN_PI*4096/D); //绝对位置模式
-        // setCommond(0x600 + ID, 8, 0x237B600000000000, m/EIGEN_PI*4096/D*2);  //相对位置模式
+        // setCommond(0x600 + ID, 8, 0x237A600000000000, m/EIGEN_PI*4096/D); //绝对位置模式
+        setCommond(0x600 + ID, 8, 0x237B600000000000, m/EIGEN_PI*4096/D*2);  //相对位置模式
         sendCommond();
 
         //使能电机
