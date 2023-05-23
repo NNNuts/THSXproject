@@ -9,7 +9,7 @@ enum
     Speed,
     Position
 };
-int mod = Disability;
+// 
 
 int main(int argc, char **argv)
 {

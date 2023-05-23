@@ -205,11 +205,11 @@ public:
 
     
 
-    void motorSetPosition(int ID,double rad)
+    void motorSetPosition(int ID,double m)
     {
         ID = motorNum[ID-1];
         clearCanData();
-        setCommond(0x600 + ID, 8, 0x237A600000000000, rad/EIGEN_PI*4096);
+        setCommond(0x600 + ID, 8, 0x237A600000000000, m/EIGEN_PI*4096/D);
         sendCommond();
 
         //使能电机
