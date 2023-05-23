@@ -138,19 +138,21 @@ public:
         }
         VCI_Transmit(VCI_USBCAN2, 0, 0, canData, canDataNum);
         sendNull();
-        // cout << "send " << canDataNum << " data" << endl;
-        // printf("CAN2 TX ID:0x%08X", canData[0].ID);
-		// if(canData[0].ExternFlag==0) printf(" Standard ");
-		// if(canData[0].ExternFlag==1) printf(" Extend   ");
-		// if(canData[0].RemoteFlag==0) printf(" Data   ");
-		// if(canData[0].RemoteFlag==1) printf(" Remote ");
-		// printf("DLC:0x%02X",canData[0].DataLen);
-		// printf(" data:0x");
-		// for(int i = 0; i < canData[0].DataLen; i++)
-		// {
-		// 	printf(" %02X", canData[0].Data[i]);
-		// }
-        // printf("\n");
+
+        cout << "send " << canDataNum << " data" << endl;
+        printf("CAN2 TX ID:0x%08X", canData[0].ID);
+		if(canData[0].ExternFlag==0) printf(" Standard ");
+		if(canData[0].ExternFlag==1) printf(" Extend   ");
+		if(canData[0].RemoteFlag==0) printf(" Data   ");
+		if(canData[0].RemoteFlag==1) printf(" Remote ");
+		printf("DLC:0x%02X",canData[0].DataLen);
+		printf(" data:0x");
+		for(int i = 0; i < canData[0].DataLen; i++)
+		{
+			printf(" %02X", canData[0].Data[i]);
+		}
+        printf("\n");
+        
         usleep(sendSleep*1000);
         clearCanData();
     }
@@ -205,11 +207,12 @@ public:
 
     
 
-    void motorSetPosition(int ID,double m)
+    void motorSetPosition(int ID, double m)
     {
         ID = motorNum[ID-1];
         clearCanData();
-        setCommond(0x600 + ID, 8, 0x237A600000000000, m/EIGEN_PI*4096/D);
+        setCommond(0x600 + ID, 8, 0x237B600000000000, m/EIGEN_PI*4096/D); //绝对位置模式
+        // setCommond(0x600 + ID, 8, 0x237B600000000000, m/EIGEN_PI*4096/D*2);  //相对位置模式
         sendCommond();
 
         //使能电机

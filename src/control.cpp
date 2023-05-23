@@ -139,6 +139,10 @@ int main(int argc, char **argv)
                 data[3] = -2;
                 data[4] = -2;
                 break;
+            default:
+                ros::spinOnce();
+                loop_rate.sleep();
+                continue;
         }
         msg.data.push_back(data[0]);
         msg.data.push_back(data[1]);

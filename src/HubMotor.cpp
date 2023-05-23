@@ -18,7 +18,13 @@ void HubMotorCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
 {
     if(Mod != msg->data.at(0))
     {
+        ROS_INFO("开始切换模式");
         Mod = msg->data.at(0);
+        rob.motorDisEnable(1);
+        rob.motorDisEnable(2);
+        rob.motorDisEnable(3);
+        rob.motorDisEnable(4);
+        usleep(3000000);
         if(Mod == Speed)
         {
             // 设置速度控制模式
@@ -40,10 +46,10 @@ void HubMotorCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
         else if(Mod == Disability)
         {
             // 设置失能模式
-            rob.motorDisEnable(1);
-            rob.motorDisEnable(2);
-            rob.motorDisEnable(3);
-            rob.motorDisEnable(4);
+            // rob.motorDisEnable(1);
+            // rob.motorDisEnable(2);
+            // rob.motorDisEnable(3);
+            // rob.motorDisEnable(4);
             ROS_INFO("设置失能模式");
         }
     }
@@ -89,6 +95,10 @@ int main(int argc, char* argv[])
     rob.canOpen();
     rob.canInit();
     rob.canStart();
+    rob.motorDisEnable(1);
+    rob.motorDisEnable(2);
+    rob.motorDisEnable(3);
+    rob.motorDisEnable(4);
     ROS_INFO("轮毂电机已连接");
 
     // 设置速度控制模式
