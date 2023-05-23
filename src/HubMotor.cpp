@@ -57,10 +57,10 @@ void HubMotorCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
     }
     else if(Mod == Position)
     {
-        rob.motorSetSpeed(1,-msg->data.at(1));
-        rob.motorSetSpeed(2,-msg->data.at(2));
-        rob.motorSetSpeed(3,msg->data.at(3));
-        rob.motorSetSpeed(4,msg->data.at(4));
+        rob.motorSetPosition(1,-msg->data.at(1));
+        rob.motorSetPosition(2,-msg->data.at(2));
+        rob.motorSetPosition(3,msg->data.at(3));
+        rob.motorSetPosition(4,msg->data.at(4));
         ROS_INFO("HubMotor:position = [%f],[%f],[%f],[%f]", msg->data.at(1),msg->data.at(2),msg->data.at(3),msg->data.at(4));
     }
 }
@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
     //exit(0);
     // cout << "系统启动" << endl;
     
-
+    setlocale(LC_ALL, "");
     ROS_INFO("Warning!");
     ROS_INFO("退出时，务必使用cril+C进行退出，否则会产生驱动冲突");
     ROS_INFO("冲突时需重启电脑");

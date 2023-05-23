@@ -17,6 +17,7 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
  
     ros::Publisher data_pub = nh.advertise<std_msgs::Float32MultiArray>("HubControl", 1000);
+    setlocale(LC_ALL, "");
     ROS_INFO("Warning!");
     ROS_INFO("如需使用位置模式，需将四轮离地进行初始化");
     ROS_INFO("键盘控制启动");
@@ -32,6 +33,7 @@ int main(int argc, char **argv)
         {
             case 'p':
                 data[0] = Disability;
+                break;
             case 'q':
                 data[0] = Speed;
                 data[1] = 0.25;
