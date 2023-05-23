@@ -27,8 +27,12 @@ int main(int argc, char* argv[])
     rob.canStart();
 
     
+    // rob.motorDisEnable(1);
+    // rob.motorDisEnable(2);
+    rob.motorDisEnable(3);
+    // rob.motorDisEnable(4);
 
-    //设置速度控制模式
+    //设置位置控制模式
     rob.motorInit(3,rob.PositionMod);
 
     rob.motorChangeTrapezoidalVelocityInPosition(3,50);
@@ -37,13 +41,15 @@ int main(int argc, char* argv[])
     rob.motorSetPosition(3,00);
     usleep(3000000);
     rob.motorDisEnable(3);
+    usleep(3000000);
 
-    exit(1);
+    // exit(1);
 
     //speed
     // rob.motorInit(1,rob.SpeedMod);
     // rob.motorInit(2,rob.SpeedMod);
     rob.motorInit(3,rob.SpeedMod);
+    cout<<"速度模式"<<endl;
     // rob.motorInit(4,rob.SpeedMod);
 
     // rob.motorChangeUpAccelerationInSpeed(1,20);
