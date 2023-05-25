@@ -1,0 +1,17 @@
+{
+    "files.associations": {
+        "spi_tmc.h": "c",
+        "tmc5160.h": "c",
+        "main.h": "c",
+        "common.h": "c",
+        "multi_button.h": "c",
+        "multi_task.h": "c",
+        "tmc5160_mask_shift.h": "c",
+        "inner_algorithm.h": "c",
+        "bsp_init.h": "c",
+        "stm32f1xx_it.h": "c",
+        "msp_init.h": "c",
+        "user_callback.h": "c",
+        "stdbool.h": "c"
+    }
+}

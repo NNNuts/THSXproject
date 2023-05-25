@@ -1,0 +1,12 @@
+*.uvguix
+JLinkLog.txt
+
+*~
+*swp
+
+DebugConfig/*
+MDK-ARM/DebugConfig/*
+MDK-ARM/StepMotorDriverV2.0/*
+.project
+.settings/com.st.stm32cube.ide.mcu.sfrview.prefs
+MDK-ARM/StepMotorDriverV2.0.uvguix.moses
