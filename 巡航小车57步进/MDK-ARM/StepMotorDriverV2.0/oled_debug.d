@@ -1,0 +1,11 @@
+stepmotordriverv2.0\oled_debug.o: Oledlib\oled_debug.c
+stepmotordriverv2.0\oled_debug.o: Oledlib\oled_debug.h
+stepmotordriverv2.0\oled_debug.o: Oledlib\oled_font.h
+stepmotordriverv2.0\oled_debug.o: Oledlib\oled_config.h
+stepmotordriverv2.0\oled_debug.o: Oledlib\oled_basic.h
+stepmotordriverv2.0\oled_debug.o: Oledlib\oled_draw.h
+stepmotordriverv2.0\oled_debug.o: Oledlib\oled_color.h
+stepmotordriverv2.0\oled_debug.o: D:\Keil_v5--\ARM\ARMCC\Bin\..\include\stdint.h
+stepmotordriverv2.0\oled_debug.o: D:\Keil_v5--\ARM\ARMCC\Bin\..\include\stdlib.h
+stepmotordriverv2.0\oled_debug.o: D:\Keil_v5--\ARM\ARMCC\Bin\..\include\string.h
+stepmotordriverv2.0\oled_debug.o: D:\Keil_v5--\ARM\ARMCC\Bin\..\include\stdarg.h
