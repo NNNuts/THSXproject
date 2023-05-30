@@ -69,6 +69,11 @@ void HubMotorCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
         rob.motorSetPosition(4,msg->data.at(4));
         ROS_INFO("HubMotor:position = [%f],[%f],[%f],[%f]", msg->data.at(1),msg->data.at(2),msg->data.at(3),msg->data.at(4));
     }
+    rob.stepMotorSetPosition(5,msg->data.at(5));
+    rob.stepMotorSetPosition(6,msg->data.at(6));
+    rob.stepMotorSetPosition(7,msg->data.at(7));
+    rob.stepMotorSetPosition(8,msg->data.at(8));
+    ROS_INFO("SyepMotor:position = [%f],[%f],[%f],[%f]", msg->data.at(5),msg->data.at(6),msg->data.at(7),msg->data.at(8));
 }
 
 void HubMotorExit(int sig)

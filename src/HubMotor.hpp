@@ -27,7 +27,8 @@ public:
     int canDataNum = 0;
     int sendSleep = 10;//50ms
     float D = 0.2; //m
-    int motorNum[8] = {4,2,3,1};
+    int motorNum[8] = {4,2,3,1,5,6,7,8};
+    double stepMotorErr[8] = {0,0,0,0,0.209440,0.052360,0,0};
 
     void canOpen(void)
     {
@@ -50,7 +51,7 @@ public:
         config.AccCode = 0x00000000;
         config.AccMask = 0x00000000;
         config.Filter  = 0x08;//允许所有类型的数据
-        config.Timing0 = 0x00;/*波特率125 Kbps  0x03  0x1C*/ /*波特率500 Kbps  0x00  0x1C*/
+        config.Timing0 = 0x00;/*波特率125 Kbps  0x03  0x1C*/ /*波特率500 Kbps  0x00  0x1C*/ /*波特率1000 Kbps  0x00  0x14*/
         config.Timing1 = 0x1C;
         config.Mode    = 0;//正常模式
         if(VCI_InitCAN(VCI_USBCAN2,0,0,&config)!=1)
@@ -137,7 +138,6 @@ public:
             exit(1);
         }
         VCI_Transmit(VCI_USBCAN2, 0, 0, canData, canDataNum);
-        sendNull();
 
         // cout << "send " << canDataNum << " data" << endl;
         // printf("CAN2 TX ID:0x%08X", canData[0].ID);
@@ -223,6 +223,15 @@ public:
         //使能电机
         // setCommond(0x600 + ID, 8, 0x2B4060001F000000);
         // sendCommond();
+    }
+
+    void stepMotorSetPosition(int ID, double rad)
+    {
+        ID = motorNum[ID-1];
+        rad = rad + stepMotorErr[ID];
+        clearCanData();
+        setCommond(0x600 + ID, 8, 0x2B70600000000000, (int)(rad*1000));  //绝对位置模式
+        sendCommond();
     }
 
     void motorSetSpeed(int ID,float m_s)
