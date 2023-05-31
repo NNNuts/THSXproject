@@ -28,7 +28,7 @@ public:
     int sendSleep = 10;//50ms
     float D = 0.2; //m
     int motorNum[8] = {4,2,3,1,5,6,7,8};
-    double stepMotorErr[8] = {0,0,0,0,0.209440,0.052360,0,0};
+    double stepMotorErr[8] = {0,0,0,0,0.209440,0.052360,0,0.104720};
 
     void canOpen(void)
     {
@@ -49,7 +49,7 @@ public:
     {
         VCI_INIT_CONFIG config;
         config.AccCode = 0x00000000;
-        config.AccMask = 0x00000000;
+        config.AccMask = 0xFFFFFFFF;
         config.Filter  = 0x08;//允许所有类型的数据
         config.Timing0 = 0x00;/*波特率125 Kbps  0x03  0x1C*/ /*波特率500 Kbps  0x00  0x1C*/ /*波特率1000 Kbps  0x00  0x14*/
         config.Timing1 = 0x1C;
@@ -88,7 +88,7 @@ public:
     int canRead(VCI_CAN_OBJ *rec)
     {
         // VCI_CAN_OBJ rec[100];
-        return VCI_Receive(VCI_USBCAN2,0,0,rec,100,100);
+        return VCI_Receive(VCI_USBCAN2,0,0,rec,2500,0);
     }
 
     void canClear(void)
@@ -232,6 +232,40 @@ public:
         clearCanData();
         setCommond(0x600 + ID, 8, 0x2B70600000000000, (int)(rad*1000));  //绝对位置模式
         sendCommond();
+    }
+
+    void stepMotorArriveJudge(int ID,int delay_s)
+    {
+        VCI_CAN_OBJ rec[2500];
+        ID = motorNum[ID-1];
+        clearCanData();
+        for(int i=0;i<delay_s*1000;i++)
+        {
+            setCommond(0x600 + ID, 8, 0x4071600000000000);  //绝对位置模式
+            sendCommond();
+            usleep(30000);
+            int len = canRead(rec);
+            // cout<<"len"<<len<<endl;
+            if(len)
+            {
+                for(int l=0;l<len;l++)
+                {
+                    if(rec[l].ID == 0x580 + ID)
+                    {
+                        // cout<<rec[l].Data[4]<<endl;
+                        if(rec[l].Data[4])
+                            return;
+                    }
+                }
+            }
+            
+        }
+        cout<<"超时未抵达"<<endl;
+        exit(0);
+        // rad = rad + stepMotorErr[ID];
+        // clearCanData();
+        // setCommond(0x600 + ID, 8, 0x2B70600000000000, (int)(rad*1000));  //绝对位置模式
+        // sendCommond();
     }
 
     void motorSetSpeed(int ID,float m_s)

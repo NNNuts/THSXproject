@@ -74,6 +74,10 @@ void HubMotorCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
     rob.stepMotorSetPosition(7,msg->data.at(7));
     rob.stepMotorSetPosition(8,msg->data.at(8));
     ROS_INFO("SyepMotor:position = [%f],[%f],[%f],[%f]", msg->data.at(5),msg->data.at(6),msg->data.at(7),msg->data.at(8));
+    rob.stepMotorArriveJudge(5,2);
+    rob.stepMotorArriveJudge(6,2);
+    rob.stepMotorArriveJudge(7,2);
+    rob.stepMotorArriveJudge(8,2);
 }
 
 void HubMotorExit(int sig)
@@ -113,6 +117,13 @@ int main(int argc, char* argv[])
     // rob.motorInit(4,rob.SpeedMod);
 
     signal(SIGINT, HubMotorExit);
+    // VCI_CAN_OBJ rec[2500];
+    // for(int i =0;i<10;i++)
+    // {
+    //     cout<<rob.canRead(rec)<<endl;
+    //     usleep(1000);
+    // }
+    // return 0;
 
     ros::Subscriber sub = nh.subscribe("HubControl", 1000, HubMotorCallback);
     ros::spin();

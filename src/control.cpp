@@ -63,18 +63,18 @@ int main(int argc, char **argv)
                 data[4] = -0.5;
                 break;
             case 'e':
-                data[0] = Speed;
-                data[1] = 1;
-                data[2] = 1;
-                data[3] = 1;
-                data[4] = 1;
+
+                data[5] = 3.1415926535/2;
+                data[6] = 3.1415926535/2;
+                data[7] = 3.1415926535/2;
+                data[8] = 3.1415926535/2;
                 break;
             case 'd':
-                data[0] = Speed;
-                data[1] = -1;
-                data[2] = -1;
-                data[3] = -1;
-                data[4] = -1;
+
+                data[5] = -3.1415926535/2;
+                data[6] = -3.1415926535/2;
+                data[7] = -3.1415926535/2;
+                data[8] = -3.1415926535/2;
                 break;
             case 'r':
                 data[0] = Speed;
