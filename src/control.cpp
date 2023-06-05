@@ -124,25 +124,6 @@ int main(int argc, char **argv)
             //     break;
 
             case 'w':
-                // if(fabs(data[5]-0)>1e-3||fabs(data[6]-0)>1e-3||fabs(data[7]-0)>1e-3||fabs(data[8]-0)>1e-3)
-                // {
-                //     msg.data.push_back(Speed);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(0);
-                //     data_pub.publish(msg);
-                //     data[5] = 0;
-                //     data[6] = 0;
-                //     data[7] = 0;
-                //     data[8] = 0;
-                //     usleep(2000000);
-                //     ROS_INFO("change Dir!");
-                // }
                 data[0] = Speed;
                 data[1] = 0.25;
                 data[2] = 0.25;
@@ -150,25 +131,6 @@ int main(int argc, char **argv)
                 data[4] = 0.25;
                 break;
             case 's':
-                // if(fabs(data[5]-0)>1e-3||fabs(data[6]-0)>1e-3||fabs(data[7]-0)>1e-3||fabs(data[8]-0)>1e-3)
-                // {
-                //     msg.data.push_back(Speed);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(0);
-                //     data_pub.publish(msg);
-                //     data[5] = 0;
-                //     data[6] = 0;
-                //     data[7] = 0;
-                //     data[8] = 0;
-                //     // usleep(2000000);
-                //     ROS_INFO("change Dir!");
-                // }
 
                 data[0] = Speed;
                 data[1] = -0.25;
@@ -178,25 +140,7 @@ int main(int argc, char **argv)
                 break;
             
             case 'a':
-                // if(fabs(data[5]-3.1415926535/2)>1e-3||fabs(data[6]-3.1415926535/2)>1e-3||fabs(data[7]-3.1415926535/2)>1e-3||fabs(data[8]-3.1415926535/2)>1e-3)
-                // {
-                //     msg.data.push_back(Speed);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(3.1415926535/2);
-                //     msg.data.push_back(3.1415926535/2);
-                //     msg.data.push_back(3.1415926535/2);
-                //     msg.data.push_back(3.1415926535/2);
-                //     data_pub.publish(msg);
-                //     data[5] = 3.1415926535/2;
-                //     data[6] = 3.1415926535/2;
-                //     data[7] = 3.1415926535/2;
-                //     data[8] = 3.1415926535/2;
-                //     usleep(2000000);
-                //     ROS_INFO("change Dir!");
-                // }
+
 
                 data[0] = Speed;
                 data[5] = 3.1415926535/2;
@@ -206,25 +150,7 @@ int main(int argc, char **argv)
                 break;
             
             case 'd':
-                // if(fabs(data[5]-3.1415926535/2)>1e-3||fabs(data[6]-3.1415926535/2)>1e-3||fabs(data[7]-3.1415926535/2)>1e-3||fabs(data[8]-3.1415926535/2)>1e-3)
-                // {
-                //     msg.data.push_back(Speed);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(0);
-                //     msg.data.push_back(3.1415926535/2);
-                //     msg.data.push_back(3.1415926535/2);
-                //     msg.data.push_back(3.1415926535/2);
-                //     msg.data.push_back(3.1415926535/2);
-                //     data_pub.publish(msg);
-                //     data[5] = -3.1415926535/2;
-                //     data[6] = -3.1415926535/2;
-                //     data[7] = -3.1415926535/2;
-                //     data[8] = -3.1415926535/2;
-                //     usleep(2000000);
-                //     ROS_INFO("change Dir!");
-                // }
+
                 
                 data[0] = Speed;
                 data[5] = -3.1415926535/2;
@@ -235,46 +161,40 @@ int main(int argc, char **argv)
                 break;
 
             case 'q':
-
-                
+                // data[0] = Speed;
+                // data[5] = 3.1415926535/8;
+                // data[6] = -3.1415926535/8;
+                // data[7] = 3.1415926535/8;
+                // data[8] = -3.1415926535/8;
                 data[0] = Speed;
-                data[5] = 3.1415926535/4;
-                data[6] = -3.1415926535/4;
+                data[5] = 3.1415926535/4*3;
+                data[6] = -3.1415926535/4*3;
                 data[7] = 3.1415926535/4;
                 data[8] = -3.1415926535/4;
 
                 break;
             
             case 'e':
-
-                
+                // data[0] = Speed;
+                // data[5] = -3.1415926535/8;
+                // data[6] = 3.1415926535/8;
+                // data[7] = -3.1415926535/8;
+                // data[8] = 3.1415926535/8;
                 data[0] = Speed;
                 data[5] = -3.1415926535/4;
                 data[6] = 3.1415926535/4;
-                data[7] = -3.1415926535/4;
-                data[8] = 3.1415926535/4;
+                data[7] = -3.1415926535/4*3;
+                data[8] = 3.1415926535/4*3;
 
                 break;
 
             case ' ':
-                for(int i=0;i<10;i++)
-                {
-                    data[0] = Speed;
-                    data[1] = 0;
-                    data[2] = 0;
-                    data[3] = 0;
-                    data[4] = 0;
-                    msg.data.push_back(data[0]);
-                    msg.data.push_back(data[1]);
-                    msg.data.push_back(data[2]);
-                    msg.data.push_back(data[3]);
-                    msg.data.push_back(data[4]);
-                    msg.data.push_back(data[5]);
-                    msg.data.push_back(data[6]);
-                    msg.data.push_back(data[7]);
-                    msg.data.push_back(data[8]);
-                    data_pub.publish(msg);
-                }
+
+                data[0] = Speed;
+                data[1] = 0;
+                data[2] = 0;
+                data[3] = 0;
+                data[4] = 0;
                 break;
             
             case 'r':
