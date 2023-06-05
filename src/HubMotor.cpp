@@ -74,10 +74,11 @@ void HubMotorCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
     rob.stepMotorSetPosition(7,msg->data.at(7));
     rob.stepMotorSetPosition(8,msg->data.at(8));
     ROS_INFO("SyepMotor:position = [%f],[%f],[%f],[%f]", msg->data.at(5),msg->data.at(6),msg->data.at(7),msg->data.at(8));
-    rob.stepMotorArriveJudge(5,2);
-    rob.stepMotorArriveJudge(6,2);
-    rob.stepMotorArriveJudge(7,2);
-    rob.stepMotorArriveJudge(8,2);
+    // 
+    // rob.stepMotorArriveJudge(5,2);
+    // rob.stepMotorArriveJudge(6,2);
+    // rob.stepMotorArriveJudge(7,2);
+    // rob.stepMotorArriveJudge(8,2);
 }
 
 void HubMotorExit(int sig)
@@ -104,12 +105,23 @@ int main(int argc, char* argv[])
     rob.canOpen();
     rob.canInit();
     rob.canStart();
+
     rob.motorDisEnable(1);
     rob.motorDisEnable(2);
     rob.motorDisEnable(3);
     rob.motorDisEnable(4);
-    ROS_INFO("轮毂电机已连接");
 
+    rob.stepMotorSetPosition(5,0);
+    rob.stepMotorSetPosition(6,0);
+    rob.stepMotorSetPosition(7,0);
+    rob.stepMotorSetPosition(8,0);
+    usleep(1000000);
+    ROS_INFO("轮毂电机已连接");
+    // rob.motorInit(1,rob.SpeedMod);
+    // rob.motorSetSpeed(1,0.5);
+    // rob.motorSetPosition(1,-0.25);
+    
+    // exit(0);
     // 设置速度控制模式
     // rob.motorInit(1,rob.SpeedMod);
     // rob.motorInit(2,rob.SpeedMod);

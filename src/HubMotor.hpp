@@ -25,10 +25,11 @@ public:
     int PositionMod = 1;
     VCI_CAN_OBJ canData[100];
     int canDataNum = 0;
-    int sendSleep = 10;//50ms
+    int sendSleep = 50;//50ms
     float D = 0.2; //m
-    int motorNum[8] = {4,2,3,1,5,6,7,8};
-    double stepMotorErr[8] = {0,0,0,0,0.209440,0.052360,0,0.104720};
+    int motorNum[8] = {1,4,2,3,5,6,7,8};
+    int motorDir[8] = {1,1,1,1,1,1,-1,-1};
+    double stepMotorErr[8] = {0,0,0,0,0.261799,0.157080,-0.366519,-0.314159};
 
     void canOpen(void)
     {
@@ -228,9 +229,9 @@ public:
     void stepMotorSetPosition(int ID, double rad)
     {
         ID = motorNum[ID-1];
-        rad = rad + stepMotorErr[ID];
+        rad = rad + stepMotorErr[ID-1];
         clearCanData();
-        setCommond(0x600 + ID, 8, 0x2B70600000000000, (int)(rad*1000));  //绝对位置模式
+        setCommond(0x600 + ID, 8, 0x2B70600000000000, (int)(rad*1000)*motorDir[ID-1]);  //绝对位置模式
         sendCommond();
     }
 

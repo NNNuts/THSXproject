@@ -31,96 +31,259 @@ int main(int argc, char **argv)
         // endwin();
         switch (ch)             
         {
-            case 'p':
-                data[0] = Disability;
-                break;
-            case 'q':
+            // case 'p':
+            //     data[0] = Disability;
+            //     break;
+            // case 'q':
+            //     data[0] = Speed;
+            //     data[1] = 0.25;
+            //     data[2] = 0.25;
+            //     data[3] = 0.25;
+            //     data[4] = 0.25;
+            //     break;
+            // case 'a':
+            //     data[0] = Speed;
+            //     data[1] = -0.25;
+            //     data[2] = -0.25;
+            //     data[3] = -0.25;
+            //     data[4] = -0.25;
+            //     break;
+            // case 'w':
+            //     data[0] = Speed;
+            //     data[1] = 0.5;
+            //     data[2] = 0.5;
+            //     data[3] = 0.5;
+            //     data[4] = 0.5;
+            //     break;
+            // case 's':
+            //     data[0] = Speed;
+            //     data[1] = -0.5;
+            //     data[2] = -0.5;
+            //     data[3] = -0.5;
+            //     data[4] = -0.5;
+            //     break;
+            // case 'e':
+
+            //     data[5] = 3.1415926535/2;
+            //     data[6] = 3.1415926535/2;
+            //     data[7] = 3.1415926535/2;
+            //     data[8] = 3.1415926535/2;
+            //     break;
+            // case 'd':
+
+            //     data[5] = -3.1415926535/2;
+            //     data[6] = -3.1415926535/2;
+            //     data[7] = -3.1415926535/2;
+            //     data[8] = -3.1415926535/2;
+            //     break;
+            // case 'r':
+            //     data[0] = Speed;
+            //     data[1] = 0;
+            //     data[2] = 0;
+            //     data[3] = 0;
+            //     data[4] = 0;
+            //     break;
+            // case 't':
+            //     data[0] = Speed;
+            //     data[1] = 0.25;
+            //     data[2] = 0.25;
+            //     data[3] = 0.25;
+            //     data[4] = 0.25;
+            //     break;
+            // case 'g':
+            //     data[0] = Speed;
+            //     data[1] = -0.25;
+            //     data[2] = -0.25;
+            //     data[3] = -0.25;
+            //     data[4] = -0.25;
+            //     break;
+            
+            // case 'y':
+            //     data[5] += 3.1415926535/60;
+            //     break;
+            // case 'h':
+            //     data[5] -= 3.1415926535/60;
+            //     break;
+            // case 'u':
+            //     data[6] += 3.1415926535/60;
+            //     break;
+            // case 'j':
+            //     data[6] -= 3.1415926535/60;
+            //     break;
+            // case 'i':
+            //     data[7] += 3.1415926535/60;
+            //     break;
+            // case 'k':
+            //     data[7] -= 3.1415926535/60;
+            //     break;
+            // case 'o':
+            //     data[8] += 3.1415926535/60;
+            //     break;
+            // case 'l':
+            //     data[8] -= 3.1415926535/60;
+            //     break;
+
+            case 'w':
+                // if(fabs(data[5]-0)>1e-3||fabs(data[6]-0)>1e-3||fabs(data[7]-0)>1e-3||fabs(data[8]-0)>1e-3)
+                // {
+                //     msg.data.push_back(Speed);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(0);
+                //     data_pub.publish(msg);
+                //     data[5] = 0;
+                //     data[6] = 0;
+                //     data[7] = 0;
+                //     data[8] = 0;
+                //     usleep(2000000);
+                //     ROS_INFO("change Dir!");
+                // }
                 data[0] = Speed;
                 data[1] = 0.25;
                 data[2] = 0.25;
                 data[3] = 0.25;
                 data[4] = 0.25;
-                break;
-            case 'a':
-                data[0] = Speed;
-                data[1] = -0.25;
-                data[2] = -0.25;
-                data[3] = -0.25;
-                data[4] = -0.25;
-                break;
-            case 'w':
-                data[0] = Speed;
-                data[1] = 0.5;
-                data[2] = 0.5;
-                data[3] = 0.5;
-                data[4] = 0.5;
                 break;
             case 's':
-                data[0] = Speed;
-                data[1] = -0.5;
-                data[2] = -0.5;
-                data[3] = -0.5;
-                data[4] = -0.5;
-                break;
-            case 'e':
+                // if(fabs(data[5]-0)>1e-3||fabs(data[6]-0)>1e-3||fabs(data[7]-0)>1e-3||fabs(data[8]-0)>1e-3)
+                // {
+                //     msg.data.push_back(Speed);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(0);
+                //     data_pub.publish(msg);
+                //     data[5] = 0;
+                //     data[6] = 0;
+                //     data[7] = 0;
+                //     data[8] = 0;
+                //     // usleep(2000000);
+                //     ROS_INFO("change Dir!");
+                // }
 
-                data[5] = 3.1415926535/2;
-                data[6] = 3.1415926535/2;
-                data[7] = 3.1415926535/2;
-                data[8] = 3.1415926535/2;
-                break;
-            case 'd':
-
-                data[5] = -3.1415926535/2;
-                data[6] = -3.1415926535/2;
-                data[7] = -3.1415926535/2;
-                data[8] = -3.1415926535/2;
-                break;
-            case 'r':
                 data[0] = Speed;
-                data[1] = 0;
-                data[2] = 0;
-                data[3] = 0;
-                data[4] = 0;
-                break;
-            case 't':
-                data[0] = Position;
-                data[1] = 0.25;
-                data[2] = 0.25;
-                data[3] = 0.25;
-                data[4] = 0.25;
-                break;
-            case 'g':
-                data[0] = Position;
                 data[1] = -0.25;
                 data[2] = -0.25;
                 data[3] = -0.25;
                 data[4] = -0.25;
                 break;
             
-            case 'y':
-                data[5] += 3.1415926535/60;
+            case 'a':
+                // if(fabs(data[5]-3.1415926535/2)>1e-3||fabs(data[6]-3.1415926535/2)>1e-3||fabs(data[7]-3.1415926535/2)>1e-3||fabs(data[8]-3.1415926535/2)>1e-3)
+                // {
+                //     msg.data.push_back(Speed);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(3.1415926535/2);
+                //     msg.data.push_back(3.1415926535/2);
+                //     msg.data.push_back(3.1415926535/2);
+                //     msg.data.push_back(3.1415926535/2);
+                //     data_pub.publish(msg);
+                //     data[5] = 3.1415926535/2;
+                //     data[6] = 3.1415926535/2;
+                //     data[7] = 3.1415926535/2;
+                //     data[8] = 3.1415926535/2;
+                //     usleep(2000000);
+                //     ROS_INFO("change Dir!");
+                // }
+
+                data[0] = Speed;
+                data[5] = 3.1415926535/2;
+                data[6] = 3.1415926535/2;
+                data[7] = 3.1415926535/2;
+                data[8] = 3.1415926535/2;
                 break;
-            case 'h':
-                data[5] -= 3.1415926535/60;
+            
+            case 'd':
+                // if(fabs(data[5]-3.1415926535/2)>1e-3||fabs(data[6]-3.1415926535/2)>1e-3||fabs(data[7]-3.1415926535/2)>1e-3||fabs(data[8]-3.1415926535/2)>1e-3)
+                // {
+                //     msg.data.push_back(Speed);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(0);
+                //     msg.data.push_back(3.1415926535/2);
+                //     msg.data.push_back(3.1415926535/2);
+                //     msg.data.push_back(3.1415926535/2);
+                //     msg.data.push_back(3.1415926535/2);
+                //     data_pub.publish(msg);
+                //     data[5] = -3.1415926535/2;
+                //     data[6] = -3.1415926535/2;
+                //     data[7] = -3.1415926535/2;
+                //     data[8] = -3.1415926535/2;
+                //     usleep(2000000);
+                //     ROS_INFO("change Dir!");
+                // }
+                
+                data[0] = Speed;
+                data[5] = -3.1415926535/2;
+                data[6] = -3.1415926535/2;
+                data[7] = -3.1415926535/2;
+                data[8] = -3.1415926535/2;
+
                 break;
-            case 'u':
-                data[6] += 3.1415926535/60;
+
+            case 'q':
+
+                
+                data[0] = Speed;
+                data[5] = 3.1415926535/4;
+                data[6] = -3.1415926535/4;
+                data[7] = 3.1415926535/4;
+                data[8] = -3.1415926535/4;
+
                 break;
-            case 'j':
-                data[6] -= 3.1415926535/60;
+            
+            case 'e':
+
+                
+                data[0] = Speed;
+                data[5] = -3.1415926535/4;
+                data[6] = 3.1415926535/4;
+                data[7] = -3.1415926535/4;
+                data[8] = 3.1415926535/4;
+
                 break;
-            case 'i':
-                data[7] += 3.1415926535/60;
+
+            case ' ':
+                for(int i=0;i<10;i++)
+                {
+                    data[0] = Speed;
+                    data[1] = 0;
+                    data[2] = 0;
+                    data[3] = 0;
+                    data[4] = 0;
+                    msg.data.push_back(data[0]);
+                    msg.data.push_back(data[1]);
+                    msg.data.push_back(data[2]);
+                    msg.data.push_back(data[3]);
+                    msg.data.push_back(data[4]);
+                    msg.data.push_back(data[5]);
+                    msg.data.push_back(data[6]);
+                    msg.data.push_back(data[7]);
+                    msg.data.push_back(data[8]);
+                    data_pub.publish(msg);
+                }
                 break;
-            case 'k':
-                data[7] -= 3.1415926535/60;
-                break;
-            case 'o':
-                data[8] += 3.1415926535/60;
-                break;
-            case 'l':
-                data[8] -= 3.1415926535/60;
+            
+            case 'r':
+                
+                data[0] = Speed;
+                data[5] = 0;
+                data[6] = 0;
+                data[7] = 0;
+                data[8] = 0;
                 break;
             
             default:
