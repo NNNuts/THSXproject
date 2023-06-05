@@ -21,6 +21,7 @@ class HubMotor
 {
 private:
 public:
+    int CanID = 0;
     int SpeedMod = 0;
     int PositionMod = 1;
     VCI_CAN_OBJ canData[100];
@@ -30,6 +31,12 @@ public:
     int motorNum[8] = {1,4,2,3,5,6,7,8};
     int motorDir[8] = {1,1,1,1,1,1,-1,-1};
     double stepMotorErr[8] = {0,0,0,0,0.261799,0.157080,-0.366519,-0.314159};
+
+    HubMotor(int id)
+    {
+        this->CanID = id;
+    }
+    HubMotor() = default;
 
     void canOpen(void)
     {
@@ -55,7 +62,7 @@ public:
         config.Timing0 = 0x00;/*波特率125 Kbps  0x03  0x1C*/ /*波特率500 Kbps  0x00  0x1C*/ /*波特率1000 Kbps  0x00  0x14*/
         config.Timing1 = 0x1C;
         config.Mode    = 0;//正常模式
-        if(VCI_InitCAN(VCI_USBCAN2,0,0,&config)!=1)
+        if(VCI_InitCAN(VCI_USBCAN2,0,CanID,&config)!=1)
         {
             printf(">>Init CAN0 error\n");
 		    VCI_CloseDevice(VCI_USBCAN2,0);
@@ -69,7 +76,7 @@ public:
 
     void canStart(void)
     {
-        if(VCI_StartCAN(VCI_USBCAN2,0,0)!=1)
+        if(VCI_StartCAN(VCI_USBCAN2,0,CanID)!=1)
         {
             printf(">>Start CAN0 error\n");
             VCI_CloseDevice(VCI_USBCAN2,0);
@@ -89,12 +96,12 @@ public:
     int canRead(VCI_CAN_OBJ *rec)
     {
         // VCI_CAN_OBJ rec[100];
-        return VCI_Receive(VCI_USBCAN2,0,0,rec,2500,0);
+        return VCI_Receive(VCI_USBCAN2,0,CanID,rec,2500,0);
     }
 
     void canClear(void)
     {
-        VCI_ClearBuffer(VCI_USBCAN2, 0, 0);
+        VCI_ClearBuffer(VCI_USBCAN2, 0, CanID);
     }
 
     void setCommond(int ID, int Len, long data, unsigned long pass = 0)
@@ -138,7 +145,7 @@ public:
             cout << "数据储存为空" << endl;
             exit(1);
         }
-        VCI_Transmit(VCI_USBCAN2, 0, 0, canData, canDataNum);
+        VCI_Transmit(VCI_USBCAN2, 0, CanID, canData, canDataNum);
 
         // cout << "send " << canDataNum << " data" << endl;
         // printf("CAN2 TX ID:0x%08X", canData[0].ID);
@@ -163,20 +170,20 @@ public:
         canDataNum = 0;
     }
 
-    void sendNull(void)
-    {
-            VCI_CAN_OBJ nullData[1];
-            nullData[0].ID = 0xFFFF;
-            nullData[0].ExternFlag = 0;
-            nullData[0].RemoteFlag = 0;
-            for(int i = 0;i<8;i++)
-            {
-                nullData[0].Data[i] = 0xFF;
-            }
+    // void sendNull(void)
+    // {
+    //         VCI_CAN_OBJ nullData[1];
+    //         nullData[0].ID = 0xFFFF;
+    //         nullData[0].ExternFlag = 0;
+    //         nullData[0].RemoteFlag = 0;
+    //         for(int i = 0;i<8;i++)
+    //         {
+    //             nullData[0].Data[i] = 0xFF;
+    //         }
             
-            nullData[0].DataLen = 0x08;
-            VCI_Transmit(VCI_USBCAN2, 0, 0, nullData, 1);
-    }
+    //         nullData[0].DataLen = 0x08;
+    //         VCI_Transmit(VCI_USBCAN2, 0, CanID, nullData, 1);
+    // }
 
     void motorInit(int ID,int mod)
     {
