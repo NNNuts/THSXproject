@@ -98,45 +98,61 @@ int main(int argc, char **argv)
             //     data[4] = -0.25;
             //     break;
             
-            // case 'y':
-            //     data[5] += 3.1415926535/60;
-            //     break;
-            // case 'h':
-            //     data[5] -= 3.1415926535/60;
-            //     break;
-            // case 'u':
-            //     data[6] += 3.1415926535/60;
-            //     break;
-            // case 'j':
-            //     data[6] -= 3.1415926535/60;
-            //     break;
-            // case 'i':
-            //     data[7] += 3.1415926535/60;
-            //     break;
-            // case 'k':
-            //     data[7] -= 3.1415926535/60;
-            //     break;
-            // case 'o':
-            //     data[8] += 3.1415926535/60;
-            //     break;
-            // case 'l':
-            //     data[8] -= 3.1415926535/60;
-            //     break;
+            case 'y':
+                data[5] += 3.1415926535/60;
+                break;
+            case 'h':
+                data[5] -= 3.1415926535/60;
+                break;
+            case 'u':
+                data[6] += 3.1415926535/60;
+                break;
+            case 'j':
+                data[6] -= 3.1415926535/60;
+                break;
+            case 'i':
+                data[7] += 3.1415926535/60;
+                break;
+            case 'k':
+                data[7] -= 3.1415926535/60;
+                break;
+            case 'o':
+                data[8] += 3.1415926535/60;
+                break;
+            case 'l':
+                data[8] -= 3.1415926535/60;
+                break;
 
             case 'w':
                 data[0] = Speed;
-                data[1] = 0.25;
-                data[2] = 0.25;
-                data[3] = 0.25;
-                data[4] = 0.25;
+                data[1] = 0.6;
+                data[2] = 0.6;
+                data[3] = 0.6;
+                data[4] = 0.6;
                 break;
             case 's':
 
                 data[0] = Speed;
-                data[1] = -0.25;
-                data[2] = -0.25;
-                data[3] = -0.25;
-                data[4] = -0.25;
+                data[1] = -0.6;
+                data[2] = -0.6;
+                data[3] = -0.6;
+                data[4] = -0.6;
+                break;
+
+            case 'z':
+                data[0] = Speed;
+                data[1] = 0.1;
+                data[2] = 0.1;
+                data[3] = 0.1;
+                data[4] = 0.1;
+                break;
+            case 'c':
+
+                data[0] = Speed;
+                data[1] = -0.1;
+                data[2] = -0.1;
+                data[3] = -0.1;
+                data[4] = -0.1;
                 break;
             
             case 'a':

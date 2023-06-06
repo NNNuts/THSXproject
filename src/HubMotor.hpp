@@ -26,11 +26,11 @@ public:
     int PositionMod = 1;
     VCI_CAN_OBJ canData[100];
     int canDataNum = 0;
-    int sendSleep = 50;//50ms
+    int sendSleep = 2;//50ms
     float D = 0.2; //m
     int motorNum[8] = {1,4,2,3,5,6,7,8};
     int motorDir[8] = {1,1,1,1,1,1,-1,-1};
-    double stepMotorErr[8] = {0,0,0,0,0.261799,0.157080,-0.366519,-0.314159};
+    double stepMotorErr[8] = {0,0,0,0,0.261799,0.157080,-1.570796,-1.570796};
 
     HubMotor(int id)
     {
