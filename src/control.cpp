@@ -13,10 +13,10 @@ enum
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "HubControl");
+    ros::init(argc, argv, "KeyBoard");
     ros::NodeHandle nh;
  
-    ros::Publisher data_pub = nh.advertise<std_msgs::Float32MultiArray>("HubControl", 1000);
+    ros::Publisher data_pub = nh.advertise<std_msgs::Float32MultiArray>("AgvControl", 1000);
     setlocale(LC_ALL, "");
     ROS_INFO("Warning!");
 //    ROS_INFO("如需使用位置模式，需将四轮离地进行初始化");
