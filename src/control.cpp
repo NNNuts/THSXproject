@@ -12,6 +12,8 @@ enum
 };
 // 
 char getch();
+int stopFlag = 0;
+int stopNum = 5;
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "KeyBoard");
@@ -22,7 +24,7 @@ int main(int argc, char **argv)
     ROS_INFO("Warning!");
 //    ROS_INFO("如需使用位置模式，需将四轮离地进行初始化");
     ROS_INFO("键盘控制启动");
-    ros::Rate loop_rate(20);
+    ros::Rate loop_rate(100);
     char ch;
     while (ros::ok())
     {
@@ -142,44 +144,65 @@ int main(int argc, char **argv)
             //     break;
 
             case 'w':
+                stopFlag = 0;
                 data[0] = Speed;
-                data[1] = 0.1;
-                data[2] = 0.1;
-                data[3] = 0.1;
-                data[4] = 0.1;
+                data[1] = 1;
+                data[2] = 1;
+                data[3] = 1;
+                data[4] = 1;
                 break;
 
             case 's':
+                stopFlag = 0;
+                data[0] = Speed;
+                data[1] = -1;
+                data[2] = -1;
+                data[3] = -1;
+                data[4] = -1;
+                break;
 
+            case 'z':
+                stopFlag = 0;
                 data[0] = Speed;
                 data[1] = 0.1;
                 data[2] = 0.1;
                 data[3] = 0.1;
                 data[4] = 0.1;
                 break;
+
+            case 'c':
+                stopFlag = 0;
+                data[0] = Speed;
+                data[1] = -0.1;
+                data[2] = -0.1;
+                data[3] = -0.1;
+                data[4] = -0.1;
+                break;
+
             
             case 'a':
 
-
+                stopFlag = 0;
                 data[0] = Speed;
-                data[5] += 3.1415926535/36;
-                data[6] += 3.1415926535/36;
-                data[7] += 3.1415926535/36;
-                data[8] += 3.1415926535/36;
+                data[5] += 3.1415926535/72;
+                data[6] += 3.1415926535/72;
+                data[7] += 3.1415926535/72;
+                data[8] += 3.1415926535/72;
                 break;
             
             case 'd':
 
-                
+                stopFlag = 0;
                 data[0] = Speed;
-                data[5] -= 3.1415926535/36;
-                data[6] -= 3.1415926535/36;
-                data[7] -= 3.1415926535/36;
-                data[8] -= 3.1415926535/36;
+                data[5] -= 3.1415926535/72;
+                data[6] -= 3.1415926535/72;
+                data[7] -= 3.1415926535/72;
+                data[8] -= 3.1415926535/72;
 
                 break;
 
             case 'q':
+                stopFlag = 0;
                 data[0] = Speed;
                 data[5] = 3.1415926535/4*3;
                 data[6] = -3.1415926535/4*3;
@@ -189,6 +212,7 @@ int main(int argc, char **argv)
                 break;
             
             case 'e':
+                stopFlag = 0;
                 data[0] = Speed;
                 data[5] = -3.1415926535/4;
                 data[6] = 3.1415926535/4;
@@ -207,16 +231,18 @@ int main(int argc, char **argv)
                 break;
             
             case 0:
-
-                data[0] = Speed;
-                data[1] = 0;
-                data[2] = 0;
-                data[3] = 0;
-                data[4] = 0;
+                stopFlag ++;
+                if(stopFlag>stopNum){
+                    data[0] = Speed;
+                    data[1] = 0;
+                    data[2] = 0;
+                    data[3] = 0;
+                    data[4] = 0;
+                }
                 break;
             
             case 'r':
-                
+                stopFlag = 0;
                 data[0] = Speed;
                 data[5] = 0;
                 data[6] = 0;
@@ -225,7 +251,7 @@ int main(int argc, char **argv)
                 break;
 
             case 'f':
-                
+                stopFlag = 0;
                 data[0] = Speed;
                 data[5] = -3.1415926535/4;
                 data[6] = 3.1415926535/4;
@@ -234,11 +260,13 @@ int main(int argc, char **argv)
                 break;
             
             default:
+                stopFlag = 0;
                 ROS_INFO("%c!",ch);
                 ros::spinOnce();
                 loop_rate.sleep();
-                continue;
+                // continue;
         }
+        
         msg.data.push_back(data[0]);
         msg.data.push_back(data[1]);
         msg.data.push_back(data[2]);
