@@ -17,7 +17,7 @@ enum
 int Mod = Disability;
 
 void HubMotorCallback(const std_msgs::Float32MultiArray::ConstPtr& msg){
-    cout<<"ok"<<endl;
+    // cout<<"ok"<<endl;
     for(int i = 0; i < 9; i++)
         AgvCommond[i] = msg->data.at(i);
 }
@@ -62,9 +62,11 @@ int main(int argc, char* argv[])
     usleep(1000000);
     ROS_INFO("轮毂电机已连接");
 
+    // exit(0);
+
 
     signal(SIGINT, HubMotorExit);
-    ros::Rate rate(10);  
+    ros::Rate rate(20);  
     ros::Publisher AgvData_pub = nh.advertise<std_msgs::Float32MultiArray>("AgvData", 1000);
     
     ros::Subscriber sub = nh.subscribe("AgvControl", 1000, HubMotorCallback);
@@ -82,7 +84,7 @@ int main(int argc, char* argv[])
         if(Mod == Disability)
             ROS_INFO("Pub HubMotor:Disability");
         else if(Mod == Speed)
-                ROS_INFO("Pub HubMotor:Speed = [%f],[%f],[%f],[%f]", rob.hubMotorRealSpeed[0], rob.hubMotorRealSpeed[1], rob.hubMotorRealSpeed[2], rob.hubMotorRealSpeed[3]);
+            ROS_INFO("Pub HubMotor:Speed = [%f],[%f],[%f],[%f]", rob.hubMotorRealSpeed[0], rob.hubMotorRealSpeed[1], rob.hubMotorRealSpeed[2], rob.hubMotorRealSpeed[3]);
         ROS_INFO("Pub StepMotor:position = [%f],[%f],[%f],[%f]", rob1.stepMotorRealPosition[4], rob1.stepMotorRealPosition[5], rob1.stepMotorRealPosition[6], rob1.stepMotorRealPosition[7]);
         
         ros::spinOnce();
@@ -97,14 +99,14 @@ int main(int argc, char* argv[])
                 rob.motorInit(4, rob.SpeedMod);
                 ROS_INFO("设置速度模式");
             }
-            // else if(Mod == Position){
-            //     // 设置位置控制模式
-            //     rob.motorInit(1, rob.PositionMod);
-            //     rob.motorInit(2, rob.PositionMod);
-            //     rob.motorInit(3, rob.PositionMod);
-            //     rob.motorInit(4, rob.PositionMod);
-            //     ROS_INFO("设置位置模式");
-            // }
+            else if(Mod == Position){
+                // 设置位置控制模式
+                rob.motorInit(1, rob.PositionMod);
+                rob.motorInit(2, rob.PositionMod);
+                rob.motorInit(3, rob.PositionMod);
+                rob.motorInit(4, rob.PositionMod);
+                ROS_INFO("设置位置模式");
+            }
             else if(Mod == Disability){
                 // 设置失能模式
                 rob.motorDisEnable(1);
