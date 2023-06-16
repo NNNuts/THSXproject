@@ -166,7 +166,7 @@ public:
         Joint_4[num] = Joint[3];
         Joint_5[num] = Joint[4];
         Joint_6[num] = Joint[5];
-
+        // cout << "Set Target Joints " << Joint[0] << " " << Joint[1] << " " << Joint[2] << " " << Joint[3] << " " << Joint[4] << " " << Joint[5] << endl;
         //中途路径点数目+1
         num++;
     }
@@ -362,7 +362,7 @@ public:
 
             TimeRecord += 1;
             GetLocation_End(dis, position);
-            //cout<<endl<<"position "<<position[0]<<" "<<position[1]<<" "<<position[2]<<" "<<position[3]<<" "<<position[4]<<" "<<position[5]<<" "<<endl;
+            // cout<<endl<<"position "<<position[0]<<" "<<position[1]<<" "<<position[2]<<" "<<position[3]<<" "<<position[4]<<" "<<position[5]<<" "<<endl;
             // PathRecord[0][TimeRecord] = position[0];
             // PathRecord[1][TimeRecord] = position[1];
             // PathRecord[2][TimeRecord] = position[2];
@@ -372,7 +372,7 @@ public:
             // PathRecord[0][0] = TimeRecord;
             // cout << position[0] << " " << position[1] << " " << position[2] << " " << position[3] << " " << position[4] << " " << position[5] << " " << endl;
 
-            TC.InvestAndJudge(position, joint,1);
+            TC.InvestAndJudge(position, joint,2);
             if (joint[0] > 100)
             {
                 cout << " time:   " << ControlIntervalTime * TimeRecord << " out " << endl;
@@ -537,6 +537,7 @@ public:
 
                 break;
             }
+            cout << "Joints " << joint[0] <<  joint[1] << joint[2] << joint[3] << joint[4] << joint[5] << endl;
             if (stage == num - 1)
             {
                 joint[0] = Joint_1[num - 1];
