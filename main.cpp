@@ -61,14 +61,14 @@ int main(int argc, char* argv[])
 
 
     //-------------------------
-    rob.robotSetPosition(1,rob.deg2rad(0));
-    rob.robotSetPosition(2,rob.deg2rad(-90));
-    rob.robotSetPosition(3,rob.deg2rad(0));
-    rob.robotSetPosition(4,rob.deg2rad(-90));
-    rob.robotSetPosition(5,rob.deg2rad(0));
-    rob.robotSetPosition(6,rob.deg2rad(0));
+    // rob.robotSetPosition(1,rob.deg2rad(0));
+    // rob.robotSetPosition(2,rob.deg2rad(-90));
+    // rob.robotSetPosition(3,rob.deg2rad(0));
+    // rob.robotSetPosition(4,rob.deg2rad(-90));
+    // rob.robotSetPosition(5,rob.deg2rad(0));
+    // rob.robotSetPosition(6,rob.deg2rad(0));
 
-    exit(0);
+    // exit(0);
     //-------------------------
 
 
@@ -76,14 +76,20 @@ int main(int argc, char* argv[])
     // OutFile.clear();
     // OutFile.close(); //关闭Test.txt文件
 
-    // double rad[6] = {0, rob.deg2rad(-60), rob.deg2rad(-60), rob.deg2rad(-60), rob.deg2rad(0), 0};
-    // double rad[6] = {0, rob.deg2rad(0), rob.deg2rad(30), rob.deg2rad(0), rob.deg2rad(0), 0};
+
     TC.theta_now[0] = 0; 
     TC.theta_now[1] = rob.deg2rad(-60);
     TC.theta_now[2] = rob.deg2rad(-60);
     TC.theta_now[3] = rob.deg2rad(-60);
     TC.theta_now[4] = 0;
     TC.theta_now[5] = 0;
+
+    // TC.theta_now[0] = 0; 
+    // TC.theta_now[1] = rob.deg2rad(-60);
+    // TC.theta_now[2] = rob.deg2rad(-60);
+    // TC.theta_now[3] = rob.deg2rad(-60);
+    // TC.theta_now[4] = 0;
+    // TC.theta_now[5] = 0;
     // rob.robotSetPositionAll(TC.theta_now);
     // usleep(2000000);
     //rob.robotSetPosition(3,rob.deg2rad(0));
@@ -113,10 +119,10 @@ int main(int argc, char* argv[])
     // MoveL(200, -300, 1100, 1);
     while(true)
     {
-        MoveL(200, -500, 1100, 1);
-        MoveL(400, -500, 800, 1);
-        MoveL(400, -300, 900, 1);
-        MoveL(200, -300, 1000, 1);
+        MoveL(-200, -500, 1100, 1);
+        MoveL(400, -500, 1100, 1);
+        MoveL(400, -300, 1100, 1);
+        MoveL(-200, -300, 1100, 1);
     }
     // while(true)
     // {
@@ -152,7 +158,7 @@ void MoveL(double X,double Y,double Z,double delay_s)
     double pos[2];
     // TC.kinematics(TC.theta_now);
     Tar.PathInit();
-    Tar.SetPathPoint(X, Y, Z, 0, rob.deg2rad(-90), 0,rob.deg2rad(180));
+    Tar.SetPathPoint(X, Y, Z, 0, rob.deg2rad(-180), 0,rob.deg2rad(0));
     Tar.Move_End_LadderShaped();
     usleep(delay_s * 1000000);
 }
@@ -161,12 +167,12 @@ void MoveL(double X,double Y,double Z,double delay_s)
 //输出：无
 //说明：MoveJ方式移动
 //特别：
-void MoveJ(double X,double Y,double Z,double delay_s)
-{
-    double pos[2];
-    // TC.kinematics(TC.theta_now);
-    Tar.PathInit();
-    Tar.SetPathPoint(X, Y, Z, 0, rob.deg2rad(-90), 0,rob.deg2rad(180));
-    Tar.Move_MoveJ_CubicPolynomial();
-    usleep(delay_s * 1000000);
-}
+// void MoveJ(double X,double Y,double Z,double delay_s)
+// {
+//     double pos[2];
+//     // TC.kinematics(TC.theta_now);
+//     Tar.PathInit();
+//     Tar.SetPathPoint(X, Y, Z, 0, rob.deg2rad(-90), 0,rob.deg2rad(180));
+//     Tar.Move_MoveJ_CubicPolynomial();
+//     usleep(delay_s * 1000000);
+// }
