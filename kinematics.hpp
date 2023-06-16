@@ -376,7 +376,7 @@ public:
             // cout<<num<<endl;
             if (num > 6)
             {
-                cout << "跳跃 " << num << endl;
+                // cout << "跳跃 " << num << endl;
                 if (T[i] > 0)
                 {
                     num = ((EIGEN_PI - T[i]) + (EIGEN_PI + theta_now[i]));
@@ -557,7 +557,7 @@ public:
             TT[t][3] = theta[i][3];
             if (theta[i][3] > EIGEN_PI / 2)
                 TT[t][3] = -(2 * EIGEN_PI - theta[i][3]);
-            if (theta[i][3] < -EIGEN_PI * 2)
+            if (theta[i][3] < -EIGEN_PI / 4 * 3)
                 TT[t][3] = theta[i][3] + 2 * EIGEN_PI;
             if (isnan(TT[t][3]))
                 continue;

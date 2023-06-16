@@ -56,8 +56,8 @@ int main(int argc, char* argv[])
     // cout<<VCI_Receive(VCI_USBCAN2,0,0,rec,3000,100)<<endl;
     // exit(0);
 
-    rob.robotReset();
-    rob.robotInit();
+    // rob.robotReset();
+    // rob.robotInit();
 
 
     //-------------------------
@@ -113,16 +113,23 @@ int main(int argc, char* argv[])
     cout << mat << endl;
     Rpy rpy = TC.Matrix2Rpy(mat.block<3, 3>(0, 0));
     cout << rpy << endl << endl;
+    // MoveL(-200, -500, 800, 1);
+    // MoveJ(-200, -500, 1200, 1);
+    // exit(0);
     // MoveL(200, -500, 1100, 1);
     // MoveL(400, -500, 1100, 1);
     // MoveL(400, -300, 1100, 1);
     // MoveL(200, -300, 1100, 1);
     while(true)
     {
-        MoveL(-200, -500, 1100, 1);
-        MoveL(400, -500, 1100, 1);
-        MoveL(400, -300, 1100, 1);
-        MoveL(-200, -300, 1100, 1);
+        MoveL(-200, -500, 800, 1);
+        MoveL(-200,  500, 800, 1);
+        MoveL(-400,  500, 800, 1);
+        MoveL(-400, -500, 800, 1);
+        MoveL(-600, -500, 800, 1);
+        MoveL(-600,  500, 800, 1);
+        MoveL(-800,  500, 800, 1);
+        MoveL(-800, -500, 800, 1);
     }
     // while(true)
     // {
@@ -158,7 +165,7 @@ void MoveL(double X,double Y,double Z,double delay_s)
     double pos[2];
     // TC.kinematics(TC.theta_now);
     Tar.PathInit();
-    Tar.SetPathPoint(X, Y, Z, 0, rob.deg2rad(-180), 0,rob.deg2rad(0));
+    Tar.SetPathPoint(X, Y, Z, 0, rob.deg2rad(0), 0,rob.deg2rad(0));
     Tar.Move_End_LadderShaped();
     usleep(delay_s * 1000000);
 }
@@ -167,12 +174,12 @@ void MoveL(double X,double Y,double Z,double delay_s)
 //输出：无
 //说明：MoveJ方式移动
 //特别：
-// void MoveJ(double X,double Y,double Z,double delay_s)
-// {
-//     double pos[2];
-//     // TC.kinematics(TC.theta_now);
-//     Tar.PathInit();
-//     Tar.SetPathPoint(X, Y, Z, 0, rob.deg2rad(-90), 0,rob.deg2rad(180));
-//     Tar.Move_MoveJ_CubicPolynomial();
-//     usleep(delay_s * 1000000);
-// }
+void MoveJ(double X,double Y,double Z,double delay_s)
+{
+    double pos[2];
+    // TC.kinematics(TC.theta_now);
+    Tar.PathInit();
+    Tar.SetPathPoint(X, Y, Z, 0, rob.deg2rad(0), 0,rob.deg2rad(0));
+    Tar.Move_MoveJ_CubicPolynomial();
+    usleep(delay_s * 1000000);
+}

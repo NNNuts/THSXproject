@@ -144,7 +144,7 @@ public:
         // fp_ms = t2 - t1;
         // cout<<"dataNum "<<canDataNum;
         // cout<<" 实际使用时间 "<<fp_ms.count()<<"ms"<<endl;
-        //sendNull();
+        // sendNull();
         // cout << "send " << canDataNum << " data" << endl;
         // printf("CAN2 TX ID:0x%08X", canData[0].ID);
 		// if(canData[0].ExternFlag==0) printf(" Standard ");
