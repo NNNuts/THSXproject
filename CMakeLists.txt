@@ -155,8 +155,11 @@ add_executable(HubMotor src/HubMotor.cpp)
 target_link_libraries(control
  ${catkin_LIBRARIES}
 )
-target_link_libraries(HubMotor libcontrolcan.so
+target_link_libraries(HubMotor 
  ${catkin_LIBRARIES}
+ libpthread.so
+ #libcontrolcan.so 
+ #${PROJECT_SOURCE_DIR}/lib/lib_emuc2_64.a
 )
 
 #############

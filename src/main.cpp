@@ -23,8 +23,8 @@ int main(int argc, char* argv[])
     cout << "系统启动" << endl;
 
     rob.canOpen();
-    rob.canInit();
-    rob.canStart();
+    // rob.canInit();
+    // rob.canStart();
 
     rob.motorClearWarning(1);
     rob.motorClearWarning(2);
@@ -46,14 +46,14 @@ int main(int argc, char* argv[])
     // rob.motorDisEnable(3);
     // usleep(3000000);
 
-    // exit(1);
+    exit(1);
 
     //speed
-    rob.motorInit(1,rob.SpeedMod);
-    rob.motorInit(2,rob.SpeedMod);
-    rob.motorInit(3,rob.SpeedMod);
+    rob.motorInit(1,SpeedMod);
+    rob.motorInit(2,SpeedMod);
+    rob.motorInit(3,SpeedMod);
     cout<<"速度模式"<<endl;
-    rob.motorInit(4,rob.SpeedMod);
+    rob.motorInit(4,SpeedMod);
 
     // rob.motorChangeUpAccelerationInSpeed(3,20);
     // rob.motorChangeUpAccelerationInSpeed(4,20);

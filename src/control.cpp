@@ -14,6 +14,9 @@ enum
 char getch();
 int stopFlag = 0;
 int stopNum = 5;
+double stopSpeed = 0.05;
+double speed = 0.5;
+int stopMod = 0;
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "KeyBoard");
@@ -146,59 +149,135 @@ int main(int argc, char **argv)
             case 'w':
                 stopFlag = 0;
                 data[0] = Speed;
-                data[1] = 1;
-                data[2] = 1;
-                data[3] = 1;
-                data[4] = 1;
+                data[1] = speed;
+                data[2] = speed;
+                data[3] = speed;
+                data[4] = speed;
+                // speed = 1;
                 break;
 
             case 's':
                 stopFlag = 0;
                 data[0] = Speed;
-                data[1] = -1;
-                data[2] = -1;
-                data[3] = -1;
-                data[4] = -1;
+                data[1] = -speed;
+                data[2] = -speed;
+                data[3] = -speed;
+                data[4] = -speed;
+                // speed = -1;
+                break;
+
+            case 't':
+                stopFlag = 0;
+                data[0] = Speed;
+                data[1] = speed;
+                data[2] = speed;
+                data[3] = speed;
+                data[4] = speed;
+                // speed = 1;
+                stopMod = 1;
+                break;
+
+            case 'g':
+                stopFlag = 0;
+                data[0] = Speed;
+                data[1] = -speed;
+                data[2] = -speed;
+                data[3] = -speed;
+                data[4] = -speed;
+                // speed = -1;
+                stopMod = 1;
                 break;
 
             case 'z':
                 stopFlag = 0;
-                data[0] = Speed;
-                data[1] = 0.1;
-                data[2] = 0.1;
-                data[3] = 0.1;
-                data[4] = 0.1;
+                speed += 0.1;
+                if(speed > 1.5)
+                    speed = 1.5;
                 break;
 
             case 'c':
                 stopFlag = 0;
-                data[0] = Speed;
-                data[1] = -0.1;
-                data[2] = -0.1;
-                data[3] = -0.1;
-                data[4] = -0.1;
+                speed -= 0.1;
+                if(speed < 0.1)
+                    speed = 0.1;
                 break;
 
             
             case 'a':
-
                 stopFlag = 0;
                 data[0] = Speed;
-                data[5] += 3.1415926535/72;
-                data[6] += 3.1415926535/72;
-                data[7] += 3.1415926535/72;
-                data[8] += 3.1415926535/72;
+                data[5] += 3.1415926535/180;
+                data[6] += 3.1415926535/180;
+                data[7] += 3.1415926535/180;
+                data[8] += 3.1415926535/180;
                 break;
             
             case 'd':
-
                 stopFlag = 0;
                 data[0] = Speed;
-                data[5] -= 3.1415926535/72;
-                data[6] -= 3.1415926535/72;
-                data[7] -= 3.1415926535/72;
-                data[8] -= 3.1415926535/72;
+                data[5] -= 3.1415926535/180;
+                data[6] -= 3.1415926535/180;
+                data[7] -= 3.1415926535/180;
+                data[8] -= 3.1415926535/180;
 
+                break;
+
+            case 'j':
+                stopFlag = 0;
+                data[0] = Speed;
+                data[5] += 3.1415926535/180;
+                // data[6] += 3.1415926535/72;
+                data[7] += 3.1415926535/180;
+                // data[8] += 3.1415926535/72;
+                if(data[5]>0){
+                    double T = 480 / tan(data[5]);
+                    data[1] = speed * T /(T+235);
+                    data[2] = speed * T /(T+235);
+                    data[3] = (speed * T + 470) / (T + 235);
+                    data[4] = (speed * T + 470) / (T + 235);
+                }
+                else if(data[5]<0){
+                    double T = 480 / tan(-data[5]);
+                    data[1] = (speed * T + 470) /(T+235);
+                    data[2] = (speed * T + 470) /(T+235);
+                    data[3] = (speed * T) / (T + 235);
+                    data[4] = (speed * T) / (T + 235);
+                }
+                else{
+                    data[1] = speed;
+                    data[2] = speed;
+                    data[3] = speed;
+                    data[4] = speed;
+                }
+                break;
+            
+            case 'k':
+                stopFlag = 0;
+                data[0] = Speed;
+                data[5] -= 3.1415926535/180;
+                // data[6] -= 3.1415926535/72;
+                data[7] -= 3.1415926535/180;
+                // data[8] -= 3.1415926535/72;
+                if(data[5]>0){
+                    double T = 480 / tan(data[5]);
+                    data[1] = speed * T /(T+235);
+                    data[2] = speed * T /(T+235);
+                    data[3] = (speed * T + 470) / (T + 235);
+                    data[4] = (speed * T + 470) / (T + 235);
+                }
+                else if(data[5]<0){
+                    double T = 480 / tan(-data[5]);
+                    data[1] = (speed * T + 470) /(T+235);
+                    data[2] = (speed * T + 470) /(T+235);
+                    data[3] = (speed * T) / (T + 235);
+                    data[4] = (speed * T) / (T + 235);
+                }
+                else{
+                    data[1] = speed;
+                    data[2] = speed;
+                    data[3] = speed;
+                    data[4] = speed;
+                }
                 break;
 
             case 'q':
@@ -208,7 +287,6 @@ int main(int argc, char **argv)
                 data[6] = -3.1415926535/4*3;
                 data[7] = 3.1415926535/4;
                 data[8] = -3.1415926535/4;
-
                 break;
             
             case 'e':
@@ -222,22 +300,37 @@ int main(int argc, char **argv)
                 break;
 
             case ' ':
-
                 data[0] = Speed;
                 data[1] = 0;
                 data[2] = 0;
                 data[3] = 0;
                 data[4] = 0;
+                // speed = 0;
+                stopMod = 0;
                 break;
             
             case 0:
-                stopFlag ++;
+                if(stopMod == 0)
+                    stopFlag ++;
                 if(stopFlag>stopNum){
                     data[0] = Speed;
-                    data[1] = 0;
-                    data[2] = 0;
-                    data[3] = 0;
-                    data[4] = 0;
+                    // if(data[1]>0)
+                    // {
+                    //     data[1] -= stopSpeed;
+                    //     if(data[1]<0)
+                    //         data[1] = 0;
+                    // }
+                    // if(data[1]<0)
+                    // {
+                    //     data[1] += stopSpeed;
+                    //     if(data[1]>0)
+                    //         data[1] = 0;
+                    // }
+                    data[4] = data[3] = data[2] = data[1] = 0;
+                    // data[1] = 0;
+                    // data[2] = 0;
+                    // data[3] = 0;
+                    // data[4] = 0;
                 }
                 break;
             
@@ -308,3 +401,4 @@ char getch()
     }
     return (buf);
 }
+
