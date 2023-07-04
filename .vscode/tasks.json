@@ -8,9 +8,10 @@
                 "-fdiagnostics-color=always",
                 "-g",
                 "${file}",
+                "${fileDirname}/socketCAN.cpp",
                 "-L${fileDirname}",
                 "-lpthread",
-                "-lcontrolcan",
+                // "-lcontrolcan",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}"
             ],

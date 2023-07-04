@@ -330,7 +330,7 @@ public:
     {
         End_A_time = End_V_max / End_A_max;
         End_AT = End_V_max * End_A_time / 2;
-        cout << "末端轨迹规划，梯形速度曲线，运动开始" << endl;
+        // cout << "末端轨迹规划，梯形速度曲线，运动开始" << endl;
 
         double dis;
         double position[6];
@@ -400,12 +400,12 @@ public:
 
             // JointsRecord[0][0] = JointsRecord[1][0] = JointsRecord[2][0] = JointsRecord[3][0] = JointsRecord[4][0] = JointsRecord[5][0] = TimeRecord;       
         }
-        cout << "末端轨迹规划，梯形速度曲线，运动结束" << endl;
-        auto t2 = std::chrono::high_resolution_clock::now();
-        fp_ms = t2 - t1;
-        cout<<"总计"<<TimeRecord-1<<"个控制点"<<endl;
-        cout<<"理论使用时间 "<<(TimeRecord-1)*ControlIntervalTime<<"ms"<<endl;
-        cout<<"实际使用时间 "<<fp_ms.count()<<"ms"<<endl;
+        // cout << "末端轨迹规划，梯形速度曲线，运动结束" << endl;
+        // auto t2 = std::chrono::high_resolution_clock::now();
+        // fp_ms = t2 - t1;
+        // cout<<"总计"<<TimeRecord-1<<"个控制点"<<endl;
+        // cout<<"理论使用时间 "<<(TimeRecord-1)*ControlIntervalTime<<"ms"<<endl;
+        // cout<<"实际使用时间 "<<fp_ms.count()<<"ms"<<endl;
 
         // for (int num = 0; num < 6; num++)
         // {
