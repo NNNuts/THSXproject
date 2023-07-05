@@ -228,32 +228,33 @@ void KeyBoardControl(double X, double Y, double Z, double RX, double RY, double 
     while(true)
     {
         ch = getch();
+        int XYZSpeed = 10;
         Matrix4d mat;
         Rpy rpy;
         switch (ch)
         {
         case 'q':
-            X += 10;
+            X += XYZSpeed;
             break;
 
         case 'a':
-            X -= 10;
+            X -= XYZSpeed;
             break;
 
         case 'w':
-            Y += 10;
+            Y += XYZSpeed;
             break;
 
         case 's':
-            Y -= 10;
+            Y -= XYZSpeed;
             break;   
 
         case 'e':
-            Z += 10;
+            Z += XYZSpeed;
             break;
 
         case 'd':
-            Z -= 10;
+            Z -= XYZSpeed;
             break;  
 
         case 'r':
@@ -279,11 +280,20 @@ void KeyBoardControl(double X, double Y, double Z, double RX, double RY, double 
         case 'h':
             RZ -= 3;
             break;
+        
+        case 'z':
+            XYZSpeed /= 10;
+            if(XYZSpeed<1)
+            {
+                XYZSpeed = 10;
+                cout << "XYZSpeed " << XYZSpeed << endl;
+            }
+            break;
 
         case ' ':
             cout << endl << X << " " << Y << " " << Z << " " << RX << " " << RY << " " << RZ << " " << endl;
             mat = TC.kinematics(TC.theta_now);
-            // cout << mat << endl;
+            cout << mat << endl;
             rpy = TC.Matrix2Rpy(mat.block<3, 3>(0, 0));
             cout << rpy << endl << endl;
             break;
