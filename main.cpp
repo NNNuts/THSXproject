@@ -60,8 +60,8 @@ int main(int argc, char* argv[])
     // cout<<VCI_Receive(VCI_USBCAN2,0,0,rec,3000,100)<<endl;
     // exit(0);
 
-    // rob.robotReset();
-    // rob.robotInit();
+    rob.robotReset();
+    rob.robotInit();
 
 
     //-------------------------
@@ -88,12 +88,12 @@ int main(int argc, char* argv[])
     // TC.theta_now[4] = 0;
     // TC.theta_now[5] = 0;
 
-    // TC.theta_now[0] = 0; 
-    // TC.theta_now[1] = rob.deg2rad(-60);
-    // TC.theta_now[2] = rob.deg2rad(-60);
-    // TC.theta_now[3] = rob.deg2rad(-60);
-    // TC.theta_now[4] = 0;
-    // TC.theta_now[5] = 0;
+    TC.theta_now[0] = 0; 
+    TC.theta_now[1] = rob.deg2rad(-60);
+    TC.theta_now[2] = rob.deg2rad(-60);
+    TC.theta_now[3] = rob.deg2rad(-60);
+    TC.theta_now[4] = 0;
+    TC.theta_now[5] = 0;
     // TC.theta_now[0] = rob.deg2rad(-0); 
     // TC.theta_now[1] = rob.deg2rad(-0);
     // TC.theta_now[2] = rob.deg2rad(-0);
@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
     // exit(0);
     // msleep(5000);
 
-    rob.robotReadPositionAll(TC.theta_now);
+    // rob.robotReadPositionAll(TC.theta_now);
 
     // TC.theta_now[0] = 0;
     cout << TC.theta_now[0] << " " << TC.theta_now[1] << " " << TC.theta_now[2] << " " << TC.theta_now[3] << " " << TC.theta_now[4] << " " << TC.theta_now[5] << " " << endl;
@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
     cout << mat << endl;
     Rpy rpy = TC.Matrix2Rpy(mat.block<3, 3>(0, 0));
     cout << rpy << endl << endl;
-    KeyBoardControl(200, 500, 800, -90, 0, 0);
+    KeyBoardControl(200, 500, 800, -95, 0, 0);
     MoveL(-200, -500, 800, 90, 0, 0, 1);
     // MoveL(-200, -500, 800, 1);
     // MoveJ(-200, -500, 1200, 1);
@@ -200,11 +200,21 @@ void KeyBoardControl(double X, double Y, double Z, double RX, double RY, double 
 {
     // MoveL(X, Y, Z, RX, RY, RZ, 3);
     char ch;
-    double parameter[6] = {X, Y, Z, RX, RY, RZ};
+    double parameter[6] = {X, Y, Z, rob.deg2rad(RX), rob.deg2rad(RY), rob.deg2rad(RZ)};
 
     double Joint[6];
     Tar.Pose_ComputerAndJudge_MoveJ(parameter,TC.theta_now, Joint);
+    // Matrix4d mat = TC.kinematics(Joint);
     
+    // Rpy rpy= TC.Matrix2Rpy(mat.block<3,3>(0,0));
+    // cout<<rpy<<endl;
+
+    // Rpy input(RX,RY,RZ);
+    // Matrix3d mat3d = TC.Rpy2Matrix(input);
+    // rpy= TC.Matrix2Rpy(mat3d);
+    // cout<<rpy<<endl;
+
+    // exit(0);
     if(Joint[0] == 10000)
     {
         cout << "当前位置不可达"  << endl;
@@ -278,10 +288,11 @@ void KeyBoardControl(double X, double Y, double Z, double RX, double RY, double 
         default:
             break;
         }
-        double parameter[6] = {X, Y, Z, RX, RY, RZ};
+        double parameter[6] = {X, Y, Z, rob.deg2rad(RX), rob.deg2rad(RY), rob.deg2rad(RZ)};
 
         double Joint[6];
         Tar.Pose_ComputerAndJudge_MoveJ(parameter,TC.theta_now, Joint);
+        
         if(Joint[0] == 10000)
         {
             cout << "当前位置不可达"  << endl;
