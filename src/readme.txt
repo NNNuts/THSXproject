@@ -17,3 +17,11 @@ data[0] 工作模式 0：失能模式 1：速度模式
 data[5:8] 是四个步进电机位置，单位rad
 
 接受指令和播报电机实际状态周期为100ms
+
+按CTRL+SHIFT+B，然后回车编译文件
+
+第一个终端 roscore
+第二个终端 source ./devel/setup.bash
+         rosrun HubMotor HubMotor
+第三个终端 source ./devel/setup.bash
+         rosrun HubMotor control
