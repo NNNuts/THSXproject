@@ -13,3 +13,14 @@ MoveL：
 再用Tar.trackMod = true启动路径计算
 然后使用Tar.setTarget()设置目标点，
 运行中途可以重新设置目标点
+
+按键控制：
+main.cpp
+F5
+qa 控制X移动
+ws 控制Y移动
+ed 控制Z移动
+rf 控制RX移动
+tg 控制RY移动
+yh 控制RZ移动
+zc 控制XYZ移动速度

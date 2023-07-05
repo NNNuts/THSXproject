@@ -282,11 +282,18 @@ void KeyBoardControl(double X, double Y, double Z, double RX, double RY, double 
             break;
         
         case 'z':
-            XYZSpeed /= 10;
-            if(XYZSpeed<1)
+            XYZSpeed += 1;
+            if(XYZSpeed>10)
             {
                 XYZSpeed = 10;
-                cout << "XYZSpeed " << XYZSpeed << endl;
+            }
+            break;
+        
+        case 'c':
+            XYZSpeed -= 1;
+            if(XYZSpeed<1)
+            {
+                XYZSpeed = 1;
             }
             break;
 
