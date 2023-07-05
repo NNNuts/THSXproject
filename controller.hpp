@@ -42,7 +42,7 @@ public:
     int flag = 0;
 
     //控制间隔时间（ms）
-    double ControlIntervalTime = 30;
+    double ControlIntervalTime = 100;
 
     //moveL运动速度限制
     double End_A_max = 0.002;//末端加速度(mm/ms2)
@@ -537,7 +537,7 @@ public:
 
                 break;
             }
-            cout << "Joints " << joint[0] <<  joint[1] << joint[2] << joint[3] << joint[4] << joint[5] << endl;
+            // cout << "Joints " << joint[0] <<  joint[1] << joint[2] << joint[3] << joint[4] << joint[5] << endl;
             if (stage == num - 1)
             {
                 joint[0] = Joint_1[num - 1];
@@ -555,7 +555,7 @@ public:
             TC.theta_now[4] = joint[4];
             TC.theta_now[5] = joint[5];
             rob.robotSetPositionAll(TC.theta_now);
-            cout << TC.theta_now[0] << " " << TC.theta_now[1] << " " << TC.theta_now[2] << " " << TC.theta_now[3] << " " << TC.theta_now[4] << " " << TC.theta_now[5] << " " << endl;
+            // cout << TC.theta_now[0] << " " << TC.theta_now[1] << " " << TC.theta_now[2] << " " << TC.theta_now[3] << " " << TC.theta_now[4] << " " << TC.theta_now[5] << " " << endl;
 
             // JointsRecord[0][TimeRecord] = joint[0];
             // JointsRecord[1][TimeRecord] = joint[1];

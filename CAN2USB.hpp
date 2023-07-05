@@ -54,7 +54,7 @@ public:
         CanPort = 24;
         canOpen();
         canStartPthread(CanAll);
-        canSetSendSleep(2000);
+        canSetSendSleep(3000);
     }
 
     void motorOpen(int ID)
