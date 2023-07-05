@@ -142,11 +142,25 @@ int main(int argc, char* argv[])
     rob.motorDisEnable(3);
     rob.motorDisEnable(4);
 
-    rob.stepMotorSetPosition(5,0);
-    rob.stepMotorSetPosition(6,0);
-    rob.stepMotorSetPosition(7,0);
-    rob.stepMotorSetPosition(8,0);
-    usleep(1000000);
+    // rob.stepMotorSetPosition(5,1);
+    // rob.stepMotorSetPosition(6,1);
+    // rob.stepMotorSetPosition(7,1);
+    // rob.stepMotorSetPosition(8,1);
+    // usleep(2000000);
+    // rob.stepMotorReadPosition();
+    // ROS_INFO("Pub StepMotor:position = [%f],[%f],[%f],[%f]", rob.stepMotorRealPosition[4], rob.stepMotorRealPosition[5], rob.stepMotorRealPosition[6], rob.stepMotorRealPosition[7]);
+
+    // rob.stepMotorSetPosition(5,0);
+    // rob.stepMotorSetPosition(6,0);
+    // rob.stepMotorSetPosition(7,0);
+    // rob.stepMotorSetPosition(8,0);
+    // usleep(2000000);
+    // rob.stepMotorReadPosition();
+    // ROS_INFO("Pub StepMotor:position = [%f],[%f],[%f],[%f]", rob.stepMotorRealPosition[4], rob.stepMotorRealPosition[5], rob.stepMotorRealPosition[6], rob.stepMotorRealPosition[7]);
+    
+    // exit(0);
+
+    // usleep(1000000);
     ROS_INFO("轮毂电机已连接");
     // rob.motorChangeUpAccelerationInSpeed(1,0.3);
     // rob.motorChangeUpAccelerationInSpeed(2,0.3);

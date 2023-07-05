@@ -106,46 +106,31 @@ int main(int argc, char **argv)
             //     break;
             
             // case 'y':
-            //     data[5] += 3.1415926535/60;
+            //     data[5] += 3.1415926535/180;
             //     break;
             // case 'h':
-            //     data[5] -= 3.1415926535/60;
+            //     data[5] -= 3.1415926535/180;
             //     break;
             // case 'u':
-            //     data[6] += 3.1415926535/60;
+            //     data[6] += 3.1415926535/180;
             //     break;
             // case 'j':
-            //     data[6] -= 3.1415926535/60;
+            //     data[6] -= 3.1415926535/180;
             //     break;
             // case 'i':
-            //     data[7] += 3.1415926535/60;
+            //     data[7] += 3.1415926535/180;
             //     break;
             // case 'k':
-            //     data[7] -= 3.1415926535/60;
+            //     data[7] -= 3.1415926535/180;
             //     break;
             // case 'o':
-            //     data[8] += 3.1415926535/60;
+            //     data[8] += 3.1415926535/180;
             //     break;
             // case 'l':
-            //     data[8] -= 3.1415926535/60;
+            //     data[8] -= 3.1415926535/180;
             //     break;
 
-            // case 'w':
-            //     data[0] = Speed;
-            //     data[1] += 0.1;
-            //     data[2] += 0.1;
-            //     data[3] += 0.1;
-            //     data[4] += 0.1;
-            //     break;
-            // case 's':
-
-            //     data[0] = Speed;
-            //     data[1] -= 0.1;
-            //     data[2] -= 0.1;
-            //     data[3] -= 0.1;
-            //     data[4] -= 0.1;
-            //     break;
-
+            //按住前进
             case 'w':
                 stopFlag = 0;
                 data[0] = Speed;
@@ -156,6 +141,7 @@ int main(int argc, char **argv)
                 // speed = 1;
                 break;
 
+            //按住后退
             case 's':
                 stopFlag = 0;
                 data[0] = Speed;
@@ -166,6 +152,7 @@ int main(int argc, char **argv)
                 // speed = -1;
                 break;
 
+            //按一下前进
             case 't':
                 stopFlag = 0;
                 data[0] = Speed;
@@ -177,6 +164,7 @@ int main(int argc, char **argv)
                 stopMod = 1;
                 break;
 
+            //按一下后退
             case 'g':
                 stopFlag = 0;
                 data[0] = Speed;
@@ -188,6 +176,7 @@ int main(int argc, char **argv)
                 stopMod = 1;
                 break;
 
+            //加速
             case 'z':
                 stopFlag = 0;
                 speed += 0.1;
@@ -195,6 +184,7 @@ int main(int argc, char **argv)
                     speed = 1.5;
                 break;
 
+            //减速
             case 'c':
                 stopFlag = 0;
                 speed -= 0.1;
@@ -202,7 +192,7 @@ int main(int argc, char **argv)
                     speed = 0.1;
                 break;
 
-            
+            //按住四轮逆时针旋转
             case 'a':
                 stopFlag = 0;
                 data[0] = Speed;
@@ -212,6 +202,7 @@ int main(int argc, char **argv)
                 data[8] += 3.1415926535/180;
                 break;
             
+            //按住四轮顺时针旋转
             case 'd':
                 stopFlag = 0;
                 data[0] = Speed;
@@ -222,6 +213,7 @@ int main(int argc, char **argv)
 
                 break;
 
+            //按住前轮阿克曼逆时针旋转
             case 'j':
                 stopFlag = 0;
                 data[0] = Speed;
@@ -229,28 +221,32 @@ int main(int argc, char **argv)
                 // data[6] += 3.1415926535/72;
                 data[7] += 3.1415926535/180;
                 // data[8] += 3.1415926535/72;
-                if(data[5]>0){
-                    double T = 480 / tan(data[5]);
-                    data[1] = speed * T /(T+235);
-                    data[2] = speed * T /(T+235);
-                    data[3] = (speed * T + 470) / (T + 235);
-                    data[4] = (speed * T + 470) / (T + 235);
-                }
-                else if(data[5]<0){
-                    double T = 480 / tan(-data[5]);
-                    data[1] = (speed * T + 470) /(T+235);
-                    data[2] = (speed * T + 470) /(T+235);
-                    data[3] = (speed * T) / (T + 235);
-                    data[4] = (speed * T) / (T + 235);
-                }
-                else{
-                    data[1] = speed;
-                    data[2] = speed;
-                    data[3] = speed;
-                    data[4] = speed;
-                }
+                // if(data[1]<0.01&&data[1]>-0.01)
+                // {
+                //     if(data[5]>0){
+                //         double T = 490 / tan(data[5]);
+                //         data[1] = speed * T /(T+235);
+                //         data[2] = speed * T /(T+235);
+                //         data[3] = (speed * T + 470) / (T + 235);
+                //         data[4] = (speed * T + 470) / (T + 235);
+                //     }
+                //     else if(data[5]<0){
+                //         double T = 490 / tan(-data[5]);
+                //         data[1] = (speed * T + 470) /(T+235);
+                //         data[2] = (speed * T + 470) /(T+235);
+                //         data[3] = (speed * T) / (T + 235);
+                //         data[4] = (speed * T) / (T + 235);
+                //     }
+                //     else{
+                //         data[1] = speed;
+                //         data[2] = speed;
+                //         data[3] = speed;
+                //         data[4] = speed;
+                //     }
+                // }
                 break;
             
+            //按住前轮阿克曼顺时针旋转
             case 'k':
                 stopFlag = 0;
                 data[0] = Speed;
@@ -258,28 +254,98 @@ int main(int argc, char **argv)
                 // data[6] -= 3.1415926535/72;
                 data[7] -= 3.1415926535/180;
                 // data[8] -= 3.1415926535/72;
-                if(data[5]>0){
-                    double T = 480 / tan(data[5]);
-                    data[1] = speed * T /(T+235);
-                    data[2] = speed * T /(T+235);
-                    data[3] = (speed * T + 470) / (T + 235);
-                    data[4] = (speed * T + 470) / (T + 235);
-                }
-                else if(data[5]<0){
-                    double T = 480 / tan(-data[5]);
-                    data[1] = (speed * T + 470) /(T+235);
-                    data[2] = (speed * T + 470) /(T+235);
-                    data[3] = (speed * T) / (T + 235);
-                    data[4] = (speed * T) / (T + 235);
-                }
-                else{
-                    data[1] = speed;
-                    data[2] = speed;
-                    data[3] = speed;
-                    data[4] = speed;
-                }
+                // if(data[1]<0.01&&data[1]>-0.01)
+                // {
+                //     if(data[5]>0){
+                //         double T = 490 / tan(data[5]);
+                //         data[1] = speed * T /(T+235);
+                //         data[2] = speed * T /(T+235);
+                //         data[3] = (speed * T + 470) / (T + 235);
+                //         data[4] = (speed * T + 470) / (T + 235);
+                //     }
+                //     else if(data[5]<0){
+                //         double T = 490 / tan(-data[5]);
+                //         data[1] = (speed * T + 470) /(T+235);
+                //         data[2] = (speed * T + 470) /(T+235);
+                //         data[3] = (speed * T) / (T + 235);
+                //         data[4] = (speed * T) / (T + 235);
+                //     }
+                //     else{
+                //         data[1] = speed;
+                //         data[2] = speed;
+                //         data[3] = speed;
+                //         data[4] = speed;
+                //     }
+                // }
                 break;
 
+            //按住双阿克曼左旋转
+            case 'u':
+                stopFlag = 0;
+                data[0] = Speed;
+                data[5] += 3.1415926535/180;
+                data[6] -= 3.1415926535/180;
+                data[7] += 3.1415926535/180;
+                data[8] -= 3.1415926535/180;
+                // if(data[1]<0.01&&data[1]>-0.01)
+                // {
+                //     if(data[5]>0){
+                //         double T = 245 / tan(data[5]);
+                //         data[1] = speed * T /(T+235);
+                //         data[2] = speed * T /(T+235);
+                //         data[3] = (speed * T + 470) / (T + 235);
+                //         data[4] = (speed * T + 470) / (T + 235);
+                //     }
+                //     else if(data[5]<0){
+                //         double T = 245 / tan(-data[5]);
+                //         data[1] = (speed * T + 470) /(T+235);
+                //         data[2] = (speed * T + 470) /(T+235);
+                //         data[3] = (speed * T) / (T + 235);
+                //         data[4] = (speed * T) / (T + 235);
+                //     }
+                //     else{
+                //         data[1] = speed;
+                //         data[2] = speed;
+                //         data[3] = speed;
+                //         data[4] = speed;
+                //     }
+                // }
+                break;
+
+            //按住双阿克曼右旋转
+            case 'i':
+                stopFlag = 0;
+                data[0] = Speed;
+                data[5] -= 3.1415926535/180;
+                data[6] += 3.1415926535/180;
+                data[7] -= 3.1415926535/180;
+                data[8] += 3.1415926535/180;
+                // if(data[1]<0.01&&data[1]>-0.01)
+                // {
+                //     if(data[5]>0){
+                //         double T = 480 / tan(data[5]);
+                //         data[1] = speed * T /(T+235);
+                //         data[2] = speed * T /(T+235);
+                //         data[3] = (speed * T + 470) / (T + 235);
+                //         data[4] = (speed * T + 470) / (T + 235);
+                //     }
+                //     else if(data[5]<0){
+                //         double T = 480 / tan(-data[5]);
+                //         data[1] = (speed * T + 470) /(T+235);
+                //         data[2] = (speed * T + 470) /(T+235);
+                //         data[3] = (speed * T) / (T + 235);
+                //         data[4] = (speed * T) / (T + 235);
+                //     }
+                //     else{
+                //         data[1] = speed;
+                //         data[2] = speed;
+                //         data[3] = speed;
+                //         data[4] = speed;
+                //     }
+                // }
+                break;
+
+            //按一下左自旋模式
             case 'q':
                 stopFlag = 0;
                 data[0] = Speed;
@@ -288,7 +354,8 @@ int main(int argc, char **argv)
                 data[7] = 3.1415926535/4;
                 data[8] = -3.1415926535/4;
                 break;
-            
+
+            //按一下右自旋模式
             case 'e':
                 stopFlag = 0;
                 data[0] = Speed;
@@ -296,7 +363,26 @@ int main(int argc, char **argv)
                 data[6] = 3.1415926535/4;
                 data[7] = -3.1415926535/4*3;
                 data[8] = 3.1415926535/4*3;
+                break;
 
+            //按一下左平移模式
+            case 'y':
+                stopFlag = 0;
+                data[0] = Speed;
+                data[5] = 3.1415926535/2;
+                data[6] = 3.1415926535/2;
+                data[7] = 3.1415926535/2;
+                data[8] = 3.1415926535/2;
+                break;
+            
+            //按一下右平移模式
+            case 'h':
+                stopFlag = 0;
+                data[0] = Speed;
+                data[5] = -3.1415926535/2;
+                data[6] = -3.1415926535/2;
+                data[7] = -3.1415926535/2;
+                data[8] = -3.1415926535/2;
                 break;
 
             case ' ':
@@ -314,19 +400,20 @@ int main(int argc, char **argv)
                     stopFlag ++;
                 if(stopFlag>stopNum){
                     data[0] = Speed;
-                    // if(data[1]>0)
-                    // {
-                    //     data[1] -= stopSpeed;
-                    //     if(data[1]<0)
-                    //         data[1] = 0;
-                    // }
-                    // if(data[1]<0)
-                    // {
-                    //     data[1] += stopSpeed;
-                    //     if(data[1]>0)
-                    //         data[1] = 0;
-                    // }
-                    data[4] = data[3] = data[2] = data[1] = 0;
+                    // speed = 0;
+                    if(data[1]>0)
+                    {
+                        data[1] -= stopSpeed;
+                        if(data[1]<0)
+                            data[1] = 0;
+                    }
+                    if(data[1]<0)
+                    {
+                        data[1] += stopSpeed;
+                        if(data[1]>0)
+                            data[1] = 0;
+                    }
+                    data[4] = data[3] = data[2] = data[1];
                     // data[1] = 0;
                     // data[2] = 0;
                     // data[3] = 0;
@@ -334,6 +421,7 @@ int main(int argc, char **argv)
                 }
                 break;
             
+            //轮胎归位
             case 'r':
                 stopFlag = 0;
                 data[0] = Speed;
@@ -343,7 +431,8 @@ int main(int argc, char **argv)
                 data[8] = 0;
                 break;
 
-            case 'f':
+            //驻车
+            case 'p':
                 stopFlag = 0;
                 data[0] = Speed;
                 data[5] = -3.1415926535/4;
@@ -354,7 +443,7 @@ int main(int argc, char **argv)
             
             default:
                 stopFlag = 0;
-                ROS_INFO("%c!",ch);
+                // ROS_INFO("%c!",ch);
                 ros::spinOnce();
                 loop_rate.sleep();
                 // continue;
