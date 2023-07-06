@@ -134,6 +134,9 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(control src/control.cpp)
+add_executable(control_mode1 src/control_mode1.cpp)
+add_executable(control_mode2 src/control_mode2.cpp)
+add_executable(control_mode3 src/control_mode3.cpp)
 add_executable(HubMotor src/HubMotor.cpp)
 
 ## Rename C++ executable without prefix
@@ -153,6 +156,15 @@ add_executable(HubMotor src/HubMotor.cpp)
 #include_directories(${OpenCV_INCLUDE_DIRS})
 
 target_link_libraries(control
+ ${catkin_LIBRARIES}
+)
+target_link_libraries(control_mode1
+ ${catkin_LIBRARIES}
+)
+target_link_libraries(control_mode2
+ ${catkin_LIBRARIES}
+)
+target_link_libraries(control_mode3
  ${catkin_LIBRARIES}
 )
 target_link_libraries(HubMotor 
