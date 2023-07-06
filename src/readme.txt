@@ -25,3 +25,7 @@ data[5:8] 是四个步进电机位置，单位rad
          rosrun HubMotor HubMotor
 第三个终端 source ./devel/setup.bash
          rosrun HubMotor control
+
+模式一 control_mode1 双阿克曼
+模式二 control_mode2 斜移
+模式三 control_mode3 平移自旋驻车
