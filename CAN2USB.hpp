@@ -145,7 +145,7 @@ public:
     {
         // VCI_CAN_OBJ rec[100];
         // clearCanData();
-        // canClear();
+        canClean(Can);
         // setCommond(0x600 + ID, 8, 0x4064600000000000);
         // sendCommond();
         canSend(Can, 0x600 + ID, 8, 0x4064600000000000);
@@ -153,14 +153,17 @@ public:
         // cout<<"Len "<<Len<<endl;
         if(CanReadDataNum[Can])
         {
+            // cout<<"Len "<<CanReadDataNum[Can]<<endl;
             for(int i=0;i<CanReadDataNum[Can];i++)
             {
+                // cout<<"Read ID "<<CanReadData[Can][i].can_id<<endl;
                 if(ackCheck(ID,0x4064600000000000,CanReadData[Can][i]))
                 {
                     // cout<<"ReadCheck "<<ID<<endl;
                     double position = CanReadData[Can][i].data[7] * 256 * 256 * 256 + CanReadData[Can][i].data[6] * 256 * 256 + CanReadData[Can][i].data[5] * 256 + CanReadData[Can][i].data[4];
                     if(position > 0x80000000)
                         position = position - 0x100000000;
+                    CanReadDataNum[Can] = 0;
                     return position / 100 / 16384 * EIGEN_PI;
                 }
             }
@@ -274,6 +277,7 @@ public:
             // setCommond(0x600 + ID, 8, 0x2B4060002F000000);
             // sendCommond();
         }
+        usleep(2000000);
         // sendCommond();
     }
 
@@ -385,6 +389,7 @@ public:
         for(i = 0;i < 6;i++)
         {
             position[i] = position[i]*motorDir[i] + motorBias[i];
+            cout<<"position "<<position[i]<<endl;
         }
         motorSetPositionAll(position[0], position[1], position[2], position[3], position[4], position[5]);
     }
@@ -395,7 +400,9 @@ public:
         int i;
         for(i = 0;i < 6;i++)
         {
+            // canClean(Can);
             rad[i] = motorReadPosition(i + 1);
+            cout<<"rad "<<rad[i]<<endl;
             rad[i] = (rad[i] - motorBias[i]) * motorDir[i];
         }
         *res = rad[0];res++;

@@ -19,12 +19,17 @@ using namespace std;
 void* socketCAN::can0_get_status(void){
     pthread_detach(pthread_self());
     int err;
+    struct can_frame frame;
     while(true){
         
         if(CanReadDataNum[0]>=CanReadDataNumMax)
             CanReadDataNum[0] = 0;
         // cout<<num<<endl;
-        err = read(Can_fd[0], &CanReadData[0][CanReadDataNum[0]], sizeof(CanReadData[0][CanReadDataNum[0]]));
+        err = read(Can_fd[0], &frame, sizeof(frame));
+        CanReadData[0][CanReadDataNum[0]].can_id = frame.can_id;
+        CanReadData[0][CanReadDataNum[0]].can_dlc = frame.can_dlc;
+        for(int i=0; i<8; i++)
+            CanReadData[0][CanReadDataNum[0]].data[i] = frame.data[i];
         CanReadDataNum[0] ++;
     }
 }
@@ -37,12 +42,19 @@ void* socketCAN::staticCan0_get_status(void *param){
 void* socketCAN::can1_get_status(void){
     pthread_detach(pthread_self());
     int err;
+    struct can_frame frame;
     while(true){
         
         if(CanReadDataNum[1]>=CanReadDataNumMax)
             CanReadDataNum[1] = 0;
         // cout<<num<<endl;
-        err = read(Can_fd[1], &CanReadData[1][CanReadDataNum[1]], sizeof(CanReadData[1][CanReadDataNum[1]]));
+        // err = read(Can_fd[1], &CanReadData[1][CanReadDataNum[1]], sizeof(CanReadData[1][CanReadDataNum[1]]));
+        err = read(Can_fd[1], &frame, sizeof(frame));
+        CanReadData[1][CanReadDataNum[1]].can_id = frame.can_id;
+        CanReadData[1][CanReadDataNum[1]].can_dlc = frame.can_dlc;
+        for(int i=0; i<8; i++)
+            CanReadData[1][CanReadDataNum[1]].data[i] = frame.data[i];
+        // cout<<"read "<<CanReadDataNum[1]<<" ID "<<CanReadData[1][CanReadDataNum[1]].can_id<<endl;
         CanReadDataNum[1] ++;
         }
 }

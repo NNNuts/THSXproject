@@ -60,8 +60,8 @@ int main(int argc, char* argv[])
     // cout<<VCI_Receive(VCI_USBCAN2,0,0,rec,3000,100)<<endl;
     // exit(0);
 
-    rob.robotReset();
-    rob.robotInit();
+    // rob.robotReset();
+    // rob.robotInit();
 
 
     //-------------------------
@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
     rob.robotReadPositionAll(TC.theta_now);
 
     // TC.theta_now[0] = 0;
-    // cout << TC.theta_now[0] << " " << TC.theta_now[1] << " " << TC.theta_now[2] << " " << TC.theta_now[3] << " " << TC.theta_now[4] << " " << TC.theta_now[5] << " " << endl;
+    cout << TC.theta_now[0] << " " << TC.theta_now[1] << " " << TC.theta_now[2] << " " << TC.theta_now[3] << " " << TC.theta_now[4] << " " << TC.theta_now[5] << " " << endl;
     for(int i = 0;i < 6;i++)
     {
         if(TC.theta_now[i] > 10 || TC.theta_now[i] < -10)
@@ -94,30 +94,64 @@ int main(int argc, char* argv[])
     }
     // exit(0);
 
-    TC.theta_now[0] = 0; 
-    TC.theta_now[1] = rob.deg2rad(-60);
-    TC.theta_now[2] = rob.deg2rad(-60);
-    TC.theta_now[3] = rob.deg2rad(-60);
-    TC.theta_now[4] = 0;
-    TC.theta_now[5] = 0;
+    // TC.theta_now[0] = 0; 
+    // TC.theta_now[1] = rob.deg2rad(-60);
+    // TC.theta_now[2] = rob.deg2rad(-60);
+    // TC.theta_now[3] = rob.deg2rad(-60);
+    // TC.theta_now[4] = 0;
+    // TC.theta_now[5] = 0;
     // TC.theta_now[0] = rob.deg2rad(-0); 
     // TC.theta_now[1] = rob.deg2rad(-30);
     // TC.theta_now[2] = rob.deg2rad(-0);
     // TC.theta_now[3] = rob.deg2rad(-0);
     // TC.theta_now[4] = rob.deg2rad(-0);
     // TC.theta_now[5] = rob.deg2rad(0);
-    rob.robotSetPositionAll(TC.theta_now);
-    // usleep(2000000);
-    // rob.robotSetPosition(3,rob.deg2rad(0));
-    // exit(0);
-    msleep(3000);
+    // rob.robotSetPositionAll(TC.theta_now);
+    // msleep(3000);
 
     
     Matrix4d mat = TC.kinematics(TC.theta_now);
     // cout << mat << endl;
     Rpy rpy = TC.Matrix2Rpy(mat.block<3, 3>(0, 0));
     // cout << rpy << endl << endl;
-    KeyBoardControl(400, 400, 1000, -90, 0, 0);
+    // MoveJ(200, 600, 800, -90, 0, 0, 5);
+    double parameter[6] = {200, 500, 800, rob.deg2rad(90), rob.deg2rad(0), rob.deg2rad(0)};
+
+    double Joint[6];
+    Tar.Pose_ComputerAndJudge_MoveJ(parameter,TC.theta_now, Joint);
+    
+    if(Joint[0] == 10000)
+    {
+        cout << "当前位置不可达"  << endl;
+    }
+    
+    TC.theta_now[0] = Joint[0];
+    TC.theta_now[1] = Joint[1];
+    TC.theta_now[2] = Joint[2];
+    TC.theta_now[3] = Joint[3];
+    TC.theta_now[4] = Joint[4];
+    TC.theta_now[5] = Joint[5];
+    rob.robotSetPositionAll(TC.theta_now);
+    cout << TC.theta_now[0] << " " << TC.theta_now[1] << " " << TC.theta_now[2] << " " << TC.theta_now[3] << " " << TC.theta_now[4] << " " << TC.theta_now[5] << " " << endl;
+    usleep(5000000);
+    rob.robotReadPositionAll(TC.theta_now);
+    // TC.theta_now[0] = 0;
+    cout << TC.theta_now[0] << " " << TC.theta_now[1] << " " << TC.theta_now[2] << " " << TC.theta_now[3] << " " << TC.theta_now[4] << " " << TC.theta_now[5] << " " << endl;
+    for(int i = 0;i < 6;i++)
+    {
+        if(TC.theta_now[i] > 10 || TC.theta_now[i] < -10)
+        {
+            cout<< i+1 << "号电机通讯失败" << endl;
+            // exit(0);
+        }
+    }
+    // cout << endl << X << " " << Y << " " << Z << " " << RX << " " << RY << " " << RZ << " " << endl;
+    mat = TC.kinematics(TC.theta_now);
+    cout << mat << endl;
+    rpy = TC.Matrix2Rpy(mat.block<3, 3>(0, 0));
+    cout << rpy << endl << endl;
+    exit(0);
+    KeyBoardControl(200, 600, 800, -90, 0, 0);
     MoveL(-200, -500, 800, 90, 0, 0, 1);
     // MoveL(-200, -500, 800, 1);
     // MoveJ(-200, -500, 1200, 1);
@@ -298,6 +332,17 @@ void KeyBoardControl(double X, double Y, double Z, double RX, double RY, double 
             break;
 
         case ' ':
+            rob.robotReadPositionAll(TC.theta_now);
+            // TC.theta_now[0] = 0;
+            // cout << TC.theta_now[0] << " " << TC.theta_now[1] << " " << TC.theta_now[2] << " " << TC.theta_now[3] << " " << TC.theta_now[4] << " " << TC.theta_now[5] << " " << endl;
+            for(int i = 0;i < 6;i++)
+            {
+                if(TC.theta_now[i] > 10 || TC.theta_now[i] < -10)
+                {
+                    cout<< i+1 << "号电机通讯失败" << endl;
+                    // exit(0);
+                }
+            }
             cout << endl << X << " " << Y << " " << Z << " " << RX << " " << RY << " " << RZ << " " << endl;
             mat = TC.kinematics(TC.theta_now);
             cout << mat << endl;
