@@ -29,3 +29,5 @@ data[5:8] 是四个步进电机位置，单位rad
 模式一 control_mode1 双阿克曼
 模式二 control_mode2 斜移
 模式三 control_mode3 平移自旋驻车
+模式四 control_mode4 双阿克曼（多键） ps：必须root模式使用,即在第三个终端第一条指令sudo su
+模式五 control_mode5 双阿克曼（左右松手即停）
