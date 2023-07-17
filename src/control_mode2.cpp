@@ -17,6 +17,7 @@ int stopNum = 5;
 double stopSpeed = 0.02;
 double speed = 0;
 double runspeed = 0.5;
+double turnSpeed = 280;
 
 int stopMod = false;
 int main(int argc, char **argv)
@@ -122,20 +123,20 @@ int main(int argc, char **argv)
             case 'a':
                 stopFlag = 0;
                 data[0] = Speed;
-                data[5] += 3.1415926535/180;
-                data[6] += 3.1415926535/180;
-                data[7] += 3.1415926535/180;
-                data[8] += 3.1415926535/180;
+                data[5] += 3.1415926535/turnSpeed;
+                data[6] += 3.1415926535/turnSpeed;
+                data[7] += 3.1415926535/turnSpeed;
+                data[8] += 3.1415926535/turnSpeed;
                 break;
 
             //按住右旋转
             case 'd':
                 stopFlag = 0;
                 data[0] = Speed;
-                data[5] -= 3.1415926535/180;
-                data[6] -= 3.1415926535/180;
-                data[7] -= 3.1415926535/180;
-                data[8] -= 3.1415926535/180;
+                data[5] -= 3.1415926535/turnSpeed;
+                data[6] -= 3.1415926535/turnSpeed;
+                data[7] -= 3.1415926535/turnSpeed;
+                data[8] -= 3.1415926535/turnSpeed;
                 break;
 
             case ' ':

@@ -103,6 +103,7 @@ double runspeed = 0.1;
 double speed_left = 1;
 double speed_right = 1;
 double angle = 0;
+double turnSpeed = 280;
 // int stopMod = false;
 int main(int argc, char **argv)
 {
@@ -193,7 +194,7 @@ int main(int argc, char **argv)
                 if(key[A] == 1 && key[D] == 0)
                 {
                     Data[0] = Speed;
-                    angle += 3.1415926535/340;
+                    angle += 3.1415926535/turnSpeed;
                     
                     if(angle > 0)
                     {
@@ -228,7 +229,7 @@ int main(int argc, char **argv)
                 else if(key[A] == 0 && key[D] == 1)
                 {
                     Data[0] = Speed;
-                    angle -= 3.1415926535/340;
+                    angle -= 3.1415926535/turnSpeed;
                     if(angle > 0)
                     {
                         T = 245/tan(angle);
