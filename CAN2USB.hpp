@@ -31,7 +31,7 @@ class CAN2USB : public socketCAN
 {
 private:
     // double motorBias[6] = {0, 104.0/180*EIGEN_PI, -1.0/180*EIGEN_PI, 65.0/180*EIGEN_PI, 147.0/180*EIGEN_PI, 0};
-    double motorBias[6] = {-9.0/180*EIGEN_PI, 104.0/180*EIGEN_PI, 1.0/180*EIGEN_PI, 63.0/180*EIGEN_PI, 145.5/180*EIGEN_PI, 0};
+    double motorBias[6] = {-9.0/180*EIGEN_PI, 104.0/180*EIGEN_PI, -2.0/180*EIGEN_PI, 63.0/180*EIGEN_PI, 145.5/180*EIGEN_PI, 0};
     double motorDir[6] = {1, 1, -1, 1, 1, 1};
     double jointsLimit[6][2] = {-180./180*EIGEN_PI, 180./180*EIGEN_PI, 
                                 -210./180*EIGEN_PI,  30./180*EIGEN_PI,
@@ -49,6 +49,35 @@ public:
     int motorOpenSleep = 5000000;//5s
     int motorSpeed = 10000;//6000/10 = 600rpm
 
+    void canSend(int com, int ID, int Len, long data, unsigned long pass = 0){
+        struct can_frame frame;
+
+        long pass_new = 0;
+        for(int i = 0;i<4;i++)
+        {
+            pass_new *= 256;
+            pass_new += pass % 256;
+            pass /= 256;
+        }
+
+        for(int i = Len - 1; i >= 0; i--)
+        {
+            // canData[canDataNum].Data[i] = data % 256;
+            frame.data[i] = data % 256 + pass_new % 256; 
+            // cout<<i<<" "<<(int)canData[canDataNum].Data[i]<<" "<<data % 256<<endl;
+            data = data / 256;
+            pass_new = pass_new / 256;
+            // data > 2;
+        }
+
+        /************ 写数据 ************/
+        frame.can_dlc = Len;  // 设置数据长度（CAN协议规定一帧最多有八个字节的有效数据）
+        frame.can_id = ID;    // 设置 ID 号，假设这里 ID 号为1，实际的 ID 号要根据是标准帧（11位）还是拓展帧（29）位来设置
+        write(Can_fd[com], &frame, sizeof(frame));  // 写数据
+        usleep(CanSendSleep);
+
+
+    }
 
     void canInit(void){
         CanPort = 24;
@@ -108,8 +137,11 @@ public:
         // clearCanData();
 
         canSend(Can, 0x600 + ID, 8, 0x237A600000000000 + rad2Hex(position));
+        // sendAck(ID,0x237A600000000000);
         canSend(Can, 0x600 + ID, 8, 0x2B4060002F000000);
+        // sendAck(ID,0x2B4060002F000000);
         canSend(Can, 0x600 + ID, 8, 0x2B4060003F000000);
+        // sendAck(ID,0x2B4060003F000000);
 
         // setCommond(0x600 + ID, 8, 0x237A600000000000 + rad2Hex(position));
         // sendCommond();
@@ -161,6 +193,7 @@ public:
                 {
                     // cout<<"ReadCheck "<<ID<<endl;
                     double position = CanReadData[Can][i].data[7] * 256 * 256 * 256 + CanReadData[Can][i].data[6] * 256 * 256 + CanReadData[Can][i].data[5] * 256 + CanReadData[Can][i].data[4];
+                    // cout<<"position "<<position<<endl;
                     if(position > 0x80000000)
                         position = position - 0x100000000;
                     CanReadDataNum[Can] = 0;
@@ -182,6 +215,26 @@ public:
         {
             return false;
         }
+    }
+
+    int sendAck(int ID,long data)
+    {
+        if(CanReadDataNum[Can])
+        {
+            // cout<<"Len "<<CanReadDataNum[Can]<<endl;
+            for(int i=0;i<CanReadDataNum[Can];i++)
+            {
+                // cout<<"Read ID "<<CanReadData[Can][i].can_id<<endl;
+                if(ackCheck(ID,data,CanReadData[Can][i]))
+                {
+                    
+                    return 0;
+                }
+            }
+        }
+        canClean(Can);
+        cout << ID << "号电机发送未确认" <<endl;
+        return 1;
     }
 
     void robotReset(void)
@@ -284,12 +337,19 @@ public:
     void motorSetPositionAll(double joint1,double joint2,double joint3,double joint4,double joint5,double joint6)
     {
         // clearCanData();
-        canSend(Can, 0x601, 8, 0x237A600000000000 + rad2Hex(joint1));
-        canSend(Can, 0x602, 8, 0x237A600000000000 + rad2Hex(joint2));
-        canSend(Can, 0x603, 8, 0x237A600000000000 + rad2Hex(joint3));
-        canSend(Can, 0x604, 8, 0x237A600000000000 + rad2Hex(joint4));
-        canSend(Can, 0x605, 8, 0x237A600000000000 + rad2Hex(joint5));
-        canSend(Can, 0x606, 8, 0x237A600000000000 + rad2Hex(joint6));
+        motorSetPosition(1,joint1);
+        motorSetPosition(2,joint2);
+        motorSetPosition(3,joint3);
+        motorSetPosition(4,joint4);
+        motorSetPosition(5,joint5);
+        motorSetPosition(6,joint6);
+        // canSend(Can, 0x601, 8, 0x237A600000000000 + rad2Hex(joint1));
+        // sendAck(1,0x237A600000000000);
+        // canSend(Can, 0x602, 8, 0x237A600000000000 + rad2Hex(joint2));
+        // canSend(Can, 0x603, 8, 0x237A600000000000 + rad2Hex(joint3));
+        // canSend(Can, 0x604, 8, 0x237A600000000000 + rad2Hex(joint4));
+        // canSend(Can, 0x605, 8, 0x237A600000000000 + rad2Hex(joint5));
+        // canSend(Can, 0x606, 8, 0x237A600000000000 + rad2Hex(joint6));
         // setCommond(0x601, 8, 0x237A600000000000 + rad2Hex(joint1));
         // sendCommond();
         // setCommond(0x602, 8, 0x237A600000000000 + rad2Hex(joint2));
@@ -303,10 +363,10 @@ public:
         // setCommond(0x606, 8, 0x237A600000000000 + rad2Hex(joint6));
         // sendCommond();
 
-        for(int ID = 1; ID <=6; ID++){
-            canSend(Can, 0x600 + ID, 8, 0x2B4060002F000000);
-            canSend(Can, 0x600 + ID, 8, 0x2B4060003F000000);
-        }
+        // for(int ID = 1; ID <=6; ID++){
+        //     canSend(Can, 0x600 + ID, 8, 0x2B4060002F000000);
+        //     canSend(Can, 0x600 + ID, 8, 0x2B4060003F000000);
+        // }
 
 
         // setCommond(0x601, 8, 0x2B4060002F000000);
@@ -356,7 +416,7 @@ public:
             num = num / 256;
             // cout<<hexData<<endl;
         }
-        
+        // cout<<"hexData "<<hexData<<endl;
         return hexData;
     }
 
@@ -389,7 +449,7 @@ public:
         for(i = 0;i < 6;i++)
         {
             position[i] = position[i]*motorDir[i] + motorBias[i];
-            cout<<"position "<<position[i]<<endl;
+            // cout<<"position "<<position[i]<<endl;
         }
         motorSetPositionAll(position[0], position[1], position[2], position[3], position[4], position[5]);
     }
@@ -402,7 +462,7 @@ public:
         {
             // canClean(Can);
             rad[i] = motorReadPosition(i + 1);
-            cout<<"rad "<<rad[i]<<endl;
+            // cout<<"rad "<<rad[i]<<endl;
             rad[i] = (rad[i] - motorBias[i]) * motorDir[i];
         }
         *res = rad[0];res++;
@@ -429,6 +489,7 @@ public:
             }
         }
     }
+
 };
 
 

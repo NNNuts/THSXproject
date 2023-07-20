@@ -159,5 +159,6 @@ public:
         frame.can_id = ID;    // 设置 ID 号，假设这里 ID 号为1，实际的 ID 号要根据是标准帧（11位）还是拓展帧（29）位来设置
         write(Can_fd[com], &frame, sizeof(frame));  // 写数据
         usleep(CanSendSleep);
+        
     }
 };
