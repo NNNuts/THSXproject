@@ -11,6 +11,9 @@
                 "${fileDirname}/socketCAN.cpp",
                 "-L${fileDirname}",
                 "-lpthread",
+                "-lfcl",
+                "-lccd",
+                "-L/usr/local/lib/",
                 // "-lcontrolcan",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}"

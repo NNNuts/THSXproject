@@ -11,9 +11,20 @@
 #include  <ctime>
 #include "CAN2USB.hpp"
 #include <termios.h>
-// #include "socketCAN.hpp"
+
+#include <Eigen/Core>
+#include <ccd/ccd.h>
+#define FCL_EXPORT
+#include "fcl/math/bv/utility.h"
+#include "fcl/narrowphase/collision.h"
+#include <iostream>
+#include <Eigen/Dense>
+
+
+
 #define msleep(ms)  usleep((ms)*1000)
 
+using namespace fcl;
 using namespace std; 
 using namespace std::chrono;
 using namespace Eigen;

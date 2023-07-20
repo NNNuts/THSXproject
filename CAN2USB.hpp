@@ -443,7 +443,12 @@ public:
 
     void robotSetPositionAll(double rad[6])
     {
-        checkJointLimit(rad);
+        // checkJointLimit(rad);
+        if(Tar.robotIsSelfCollide(rad))
+        {
+            cout<<"发生碰撞"<<endl;
+            exit(0);
+        }
         double position[6] = {rad[0], rad[1], rad[2], rad[3], rad[4],rad[5]};
         int i;
         for(i = 0;i < 6;i++)
