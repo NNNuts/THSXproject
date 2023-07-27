@@ -19,9 +19,11 @@
 
 
 HubMotor rob;
+double ControlHz = 20;
 // HubMotor rob1(1);
 // double AgvCommond[9] = {0,0,0,0,0,0,0,0,0};
 double AgvCommond[9] = {0,0,0,0,0,0,0,0,0};
+double odometerPosition[6] = {0, 0, 0, 0, 0, 0};
 enum
 {
     Disability,
@@ -45,6 +47,29 @@ void HubMotorExit(int sig)
     exit(0);
 }
 
+void odometer(void)
+{
+    double P[4][2];
+    odometerPosition[3] = odometerPosition[0];
+    odometerPosition[4] = odometerPosition[1];
+    odometerPosition[5] = odometerPosition[2];
+    P[0][0] = rob.hubMotorRealSpeed[0] / ControlHz * cos(odometerPosition[2] + rob.stepMotorRealPosition[4]) + odometerPosition[0];
+    P[0][1] = rob.hubMotorRealSpeed[0] / ControlHz * sin(odometerPosition[2] + rob.stepMotorRealPosition[4]) + odometerPosition[1];
+    P[1][0] = rob.hubMotorRealSpeed[1] / ControlHz * cos(odometerPosition[2] + rob.stepMotorRealPosition[5]) + odometerPosition[0];
+    P[1][1] = rob.hubMotorRealSpeed[1] / ControlHz * sin(odometerPosition[2] + rob.stepMotorRealPosition[5]) + odometerPosition[1];
+    P[2][0] = rob.hubMotorRealSpeed[2] / ControlHz * cos(odometerPosition[2] + rob.stepMotorRealPosition[6]) + odometerPosition[0];
+    P[2][1] = rob.hubMotorRealSpeed[2] / ControlHz * sin(odometerPosition[2] + rob.stepMotorRealPosition[6]) + odometerPosition[1];
+    P[3][0] = rob.hubMotorRealSpeed[3] / ControlHz * cos(odometerPosition[2] + rob.stepMotorRealPosition[7]) + odometerPosition[0];
+    P[3][1] = rob.hubMotorRealSpeed[3] / ControlHz * sin(odometerPosition[2] + rob.stepMotorRealPosition[7]) + odometerPosition[1];
+    
+    odometerPosition[0] = (P[0][0] + P[1][0] + P[2][0] + P[3][0]) / 4;
+    odometerPosition[1] = (P[0][1] + P[1][1] + P[2][1] + P[3][1]) / 4;
+    odometerPosition[2] = (atan2((P[0][1] - P[1][1]), (P[0][0] - P[1][0])) + atan2((P[2][1] - P[3][1]), (P[2][0] - P[3][0]))) / 2;
+
+    odometerPosition[3] = (odometerPosition[0] - odometerPosition[3]) * ControlHz;
+    odometerPosition[4] = (odometerPosition[1] - odometerPosition[4]) * ControlHz;
+    odometerPosition[5] = (odometerPosition[2] - odometerPosition[5]) * ControlHz;
+}
 
 
 int main(int argc, char* argv[])
@@ -99,26 +124,41 @@ int main(int argc, char* argv[])
 
 
     signal(SIGINT, HubMotorExit);
-    ros::Rate rate(20);  
+    ros::Rate rate(ControlHz);  
     ros::Publisher AgvData_pub = nh.advertise<std_msgs::Float32MultiArray>("AgvData", 1000);
+    ros::Publisher AgvOdometerPosition_pub = nh.advertise<std_msgs::Float32MultiArray>("AgvOdometerPosition", 1000);
+    ros::Publisher AgvOdometerSpeed_pub = nh.advertise<std_msgs::Float32MultiArray>("AgvOdometerSpeed", 1000);
+    
     
     ros::Subscriber sub = nh.subscribe("AgvControl", 1000, HubMotorCallback);
     while(true){
         rate.sleep();
         rob.stepMotorReadPosition();
         rob.hubMotorReadPosition();
+        odometer();
         std_msgs::Float32MultiArray AgvData;
+        std_msgs::Float32MultiArray AgvOdometerPosition;
+        std_msgs::Float32MultiArray AgvOdometerSpeed;
         AgvData.data.push_back(Mod);
         for(int i = 0; i < 4; i++)
             AgvData.data.push_back(rob.hubMotorRealSpeed[i]);
         for(int i = 0; i < 4; i++)
             AgvData.data.push_back(rob.stepMotorRealPosition[4 + i]);
         AgvData_pub.publish(AgvData);
-        if(Mod == Disability)
-            ROS_INFO("Pub HubMotor:Disability");
-        else if(Mod == Speed)
-            ROS_INFO("Pub HubMotor:Speed = [%f],[%f],[%f],[%f]", rob.hubMotorRealSpeed[0], rob.hubMotorRealSpeed[1], rob.hubMotorRealSpeed[2], rob.hubMotorRealSpeed[3]);
-        ROS_INFO("Pub StepMotor:position = [%f],[%f],[%f],[%f]", rob.stepMotorRealPosition[4], rob.stepMotorRealPosition[5], rob.stepMotorRealPosition[6], rob.stepMotorRealPosition[7]);
+
+        for(int i = 0; i < 3; i++)
+            AgvOdometerPosition.data.push_back(odometerPosition[i]);
+        for(int i = 3; i < 6; i++)
+            AgvOdometerSpeed.data.push_back(odometerPosition[i]);
+        AgvOdometerPosition_pub.publish(AgvOdometerPosition);
+        AgvOdometerPosition_pub.publish(AgvOdometerPosition);
+        ROS_INFO("odometerStatus = [%f],[%f],[%f],[%f],[%f],[%f]", 
+        odometerPosition[0], odometerPosition[1], odometerPosition[2], odometerPosition[3], odometerPosition[4], odometerPosition[5]);
+        // if(Mod == Disability)
+        //     ROS_INFO("Pub HubMotor:Disability");
+        // else if(Mod == Speed)
+        //     ROS_INFO("Pub HubMotor:Speed = [%f],[%f],[%f],[%f]", rob.hubMotorRealSpeed[0], rob.hubMotorRealSpeed[1], rob.hubMotorRealSpeed[2], rob.hubMotorRealSpeed[3]);
+        // ROS_INFO("Pub StepMotor:position = [%f],[%f],[%f],[%f]", rob.stepMotorRealPosition[4], rob.stepMotorRealPosition[5], rob.stepMotorRealPosition[6], rob.stepMotorRealPosition[7]);
         
         ros::spinOnce();
         if(Mod != AgvCommond[0]){
