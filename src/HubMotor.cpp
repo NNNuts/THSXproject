@@ -44,87 +44,11 @@ void HubMotorExit(int sig)
 	ros::shutdown();
     exit(0);
 }
-struct can_frame status[1000];
-int numMax = 1000;
-int num = 0;
-// int can_get_status(int can_fd)
-// {
-//     // struct can_frame status;   // can_frame 结构体定义在头文件 can.h 中
-//     read(can_fd, &status, sizeof(status));  // 读取数据，读取到的有效数据保存在 status.data[] 数组中
-// }
 
-void *can_get_status(void *can_fd)
-{
-    pthread_detach(pthread_self());
-    long tid;
-    tid = (long) can_fd;
-    int err;
-    while(true){
-        num ++;
-        if(num>=numMax)
-            num = 0;
-        cout<<num<<endl;
-        err = read(tid, &status[num], sizeof(status));
-        // cout<<err<<endl;
-        cout<<(int)status[num].data[0]<<endl;
-    }
-}
 
 
 int main(int argc, char* argv[])
 {
-    // rob.canOpen();
-    // msleep(10);
-    // rob.send(1,0x601,8,0x1010101010101010);
-    // msleep(10);
-    // rob.send(1,0x601,8,0x1010101010101010);
-    // msleep(10);
-    // rob.send(1,0x601,8,0x1010101010101010);
-    // msleep(3000);
-    // return 0;
-    // int can_fd = socket(AF_CAN, SOCK_RAW, CAN_RAW);
-    // if(can_fd < 0)
-    // {
-    //     perror("socket can creat error!\n");
-    //     return -1;
-    // }
-    // struct ifreq ifr;  // if.h
-    // strcpy(ifr.ifr_name, "can1");
-    // ioctl(can_fd, SIOCGIFINDEX, &ifr); // 指定编号为 can0 的设备，获取设备索引
- 
-    // struct sockaddr_can addr;
-    // addr.can_family = AF_CAN;  // 指定协议族
-    // addr.can_ifindex = ifr.ifr_ifindex;  // 设备索引
-    // // 将套接字与 can0 绑定
-    // int bind_res = bind(can_fd, (struct sockaddr *)&addr, sizeof(addr));
-    // if(bind_res < 0)
-    // {
-    //     perror("bind error!");
-    //     return -1;
-    // }
-    
-    // struct can_frame frame; 
-    // frame.data[0] = 0xFF;  // 要发送的（最多）8个字节的数据
-    // frame.data[1] = 0xFF;
-    // frame.data[2] = 0xFF;
-    // frame.data[3] = 0xFF;
-    // frame.data[4] = 0xFF;
-    // frame.data[5] = 0xFF;
-    // frame.data[6] = 0xFF;
-    // frame.data[7] = 0xFC;
- 
-    // /************ 写数据 ************/
-    // frame.can_dlc = 8;  // 设置数据长度（CAN协议规定一帧最多有八个字节的有效数据）
-    // frame.can_id = 1;    // 设置 ID 号，假设这里 ID 号为1，实际的 ID 号要根据是标准帧（11位）还是拓展帧（29）位来设置
-    // write(can_fd, &frame, sizeof(frame));  // 写数据
-
-    // pthread_t threads;
-    // int rc;
-    // rc = pthread_create(&threads, NULL, can_get_status, (void *) can_fd);
-    // // pthread_exit(NULL);
-    // msleep(3000);
-    // can0read_thread.detach();
-
     ros::init(argc, argv, "Agv");  //解析参数，命名结点
     ros::NodeHandle nh;  //创建句柄，实例化node
 
