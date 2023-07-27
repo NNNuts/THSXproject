@@ -220,7 +220,7 @@ public:
         canSend(Step, 0x608, 8, 0x4072600000000000);  //绝对位置
         int Len = CanReadDataNum[Step];
         // CanReadDataNum[Step] = 0;
-        cout<<Len<<endl;
+        // cout<<Len<<endl;
         if(Len){
             for(int l=0;l<Len;l++){
                 // cout<<"Len "<<l<<" ID " << CanReadData[Step][l].can_id << endl;

@@ -50,20 +50,54 @@ void HubMotorExit(int sig)
 void odometer(void)
 {
     double P[4][2];
+    double angle = atan2(0.235,0.245);
+    double length = sqrt(0.235*0.235 + 0.245*0.245);
+    if(rob.hubMotorRealSpeed[0]>10 || rob.hubMotorRealSpeed[1]>10 || rob.hubMotorRealSpeed[2]>10 || rob.hubMotorRealSpeed[3]>10)
+    {
+        cout<<"轮毂电机断开连接"<<endl;
+        return;
+    }
+    if(rob.stepMotorRealPosition[4]>10 || rob.stepMotorRealPosition[5]>10 || rob.stepMotorRealPosition[6]>10 || rob.stepMotorRealPosition[7]>10)
+    {
+        cout<<"转向电机断开连接"<<endl;
+        return;
+    }
     odometerPosition[3] = odometerPosition[0];
     odometerPosition[4] = odometerPosition[1];
     odometerPosition[5] = odometerPosition[2];
-    P[0][0] = rob.hubMotorRealSpeed[0] / ControlHz * cos(odometerPosition[2] + rob.stepMotorRealPosition[4]) + odometerPosition[0];
-    P[0][1] = rob.hubMotorRealSpeed[0] / ControlHz * sin(odometerPosition[2] + rob.stepMotorRealPosition[4]) + odometerPosition[1];
-    P[1][0] = rob.hubMotorRealSpeed[1] / ControlHz * cos(odometerPosition[2] + rob.stepMotorRealPosition[5]) + odometerPosition[0];
-    P[1][1] = rob.hubMotorRealSpeed[1] / ControlHz * sin(odometerPosition[2] + rob.stepMotorRealPosition[5]) + odometerPosition[1];
-    P[2][0] = rob.hubMotorRealSpeed[2] / ControlHz * cos(odometerPosition[2] + rob.stepMotorRealPosition[6]) + odometerPosition[0];
-    P[2][1] = rob.hubMotorRealSpeed[2] / ControlHz * sin(odometerPosition[2] + rob.stepMotorRealPosition[6]) + odometerPosition[1];
-    P[3][0] = rob.hubMotorRealSpeed[3] / ControlHz * cos(odometerPosition[2] + rob.stepMotorRealPosition[7]) + odometerPosition[0];
-    P[3][1] = rob.hubMotorRealSpeed[3] / ControlHz * sin(odometerPosition[2] + rob.stepMotorRealPosition[7]) + odometerPosition[1];
+    // rob.hubMotorRealSpeed[0] = 0.2;
+    // rob.hubMotorRealSpeed[1] = 0.2;
+    // rob.hubMotorRealSpeed[2] = 0.2;
+    // rob.hubMotorRealSpeed[3] = 0.2;
+    // rob.stepMotorRealPosition[4] = EIGEN_PI / 4;
+    // rob.stepMotorRealPosition[5] = -EIGEN_PI / 4;
+    // rob.stepMotorRealPosition[6] = EIGEN_PI / 4;
+    // rob.stepMotorRealPosition[7] = -EIGEN_PI / 4;
     
+    P[0][0] = rob.hubMotorRealSpeed[0] / ControlHz * cos(odometerPosition[2] + rob.stepMotorRealPosition[4]) + odometerPosition[0] + length * cos(angle + odometerPosition[2]);
+    P[0][1] = rob.hubMotorRealSpeed[0] / ControlHz * sin(odometerPosition[2] + rob.stepMotorRealPosition[4]) + odometerPosition[1] + length * sin(angle + odometerPosition[2]);
+    P[1][0] = rob.hubMotorRealSpeed[1] / ControlHz * cos(odometerPosition[2] + rob.stepMotorRealPosition[5]) + odometerPosition[0] - length * cos(angle - odometerPosition[2]);
+    P[1][1] = rob.hubMotorRealSpeed[1] / ControlHz * sin(odometerPosition[2] + rob.stepMotorRealPosition[5]) + odometerPosition[1] + length * sin(angle - odometerPosition[2]);
+    P[2][0] = rob.hubMotorRealSpeed[2] / ControlHz * cos(odometerPosition[2] + rob.stepMotorRealPosition[6]) + odometerPosition[0] + length * cos(angle - odometerPosition[2]);
+    P[2][1] = rob.hubMotorRealSpeed[2] / ControlHz * sin(odometerPosition[2] + rob.stepMotorRealPosition[6]) + odometerPosition[1] - length * sin(angle - odometerPosition[2]);
+    P[3][0] = rob.hubMotorRealSpeed[3] / ControlHz * cos(odometerPosition[2] + rob.stepMotorRealPosition[7]) + odometerPosition[0] - length * cos(angle + odometerPosition[2]);
+    P[3][1] = rob.hubMotorRealSpeed[3] / ControlHz * sin(odometerPosition[2] + rob.stepMotorRealPosition[7]) + odometerPosition[1] - length * sin(angle + odometerPosition[2]);
+    // cout<<rob.hubMotorRealSpeed[0] / ControlHz * sin(odometerPosition[2] + rob.stepMotorRealPosition[4])<<endl;
+    // cout<<rob.hubMotorRealSpeed[1] / ControlHz * sin(odometerPosition[2] + rob.stepMotorRealPosition[5])<<endl;
+    // cout<<(P[0][1] - P[1][1])<<endl;
+    // cout<<(P[0][0] - P[1][0])<<endl;
+    // cout<<atan2((P[0][1] - P[1][1]), (P[0][0] - P[1][0]))<<endl;
+    // cout<<atan2((P[2][1] - P[3][1]), (P[2][0] - P[3][0]))<<endl;
+    // cout<<(atan2((P[0][1] - P[1][1]), (P[0][0] - P[1][0])) + atan2((P[2][1] - P[3][1]), (P[2][0] - P[3][0]))) / 2<<endl;
+    // cout<<P[0][0]<<" "<<P[0][1]<<endl;
+    // cout<<P[1][0]<<" "<<P[1][1]<<endl;
+    // cout<<P[2][0]<<" "<<P[2][1]<<endl;
+    // cout<<P[3][0]<<" "<<P[3][1]<<endl;
+    // cout<<sqrt((P[0][0] - P[1][0]) * (P[0][0] - P[1][0]) + (P[0][1] - P[1][1]) * (P[0][1] - P[1][1]))<<endl;
     odometerPosition[0] = (P[0][0] + P[1][0] + P[2][0] + P[3][0]) / 4;
     odometerPosition[1] = (P[0][1] + P[1][1] + P[2][1] + P[3][1]) / 4;
+    // cout<<atan2((P[0][1] - P[1][1]), (P[0][0] - P[1][0]))<<endl;
+    // cout<<atan2((P[2][1] - P[3][1]), (P[2][0] - P[3][0]))<<endl;
     odometerPosition[2] = (atan2((P[0][1] - P[1][1]), (P[0][0] - P[1][0])) + atan2((P[2][1] - P[3][1]), (P[2][0] - P[3][0]))) / 2;
 
     odometerPosition[3] = (odometerPosition[0] - odometerPosition[3]) * ControlHz;
@@ -146,19 +180,21 @@ int main(int argc, char* argv[])
             AgvData.data.push_back(rob.stepMotorRealPosition[4 + i]);
         AgvData_pub.publish(AgvData);
 
+        if(Mod == Disability)
+            ROS_INFO("Pub HubMotor:Disability");
+        else if(Mod == Speed)
+            ROS_INFO("Pub HubMotor:Speed = [%f],[%f],[%f],[%f]", rob.hubMotorRealSpeed[0], rob.hubMotorRealSpeed[1], rob.hubMotorRealSpeed[2], rob.hubMotorRealSpeed[3]);
+        // ROS_INFO("Pub StepMotor:position = [%f],[%f],[%f],[%f]", rob.stepMotorRealPosition[4], rob.stepMotorRealPosition[5], rob.stepMotorRealPosition[6], rob.stepMotorRealPosition[7]);
+        
+
         for(int i = 0; i < 3; i++)
             AgvOdometerPosition.data.push_back(odometerPosition[i]);
         for(int i = 3; i < 6; i++)
             AgvOdometerSpeed.data.push_back(odometerPosition[i]);
         AgvOdometerPosition_pub.publish(AgvOdometerPosition);
         AgvOdometerPosition_pub.publish(AgvOdometerPosition);
-        ROS_INFO("odometerStatus = [%f],[%f],[%f],[%f],[%f],[%f]", 
+        ROS_INFO("odometerStatus = [%f],[%f],[%f],[%f],[%f],[%f] ", 
         odometerPosition[0], odometerPosition[1], odometerPosition[2], odometerPosition[3], odometerPosition[4], odometerPosition[5]);
-        // if(Mod == Disability)
-        //     ROS_INFO("Pub HubMotor:Disability");
-        // else if(Mod == Speed)
-        //     ROS_INFO("Pub HubMotor:Speed = [%f],[%f],[%f],[%f]", rob.hubMotorRealSpeed[0], rob.hubMotorRealSpeed[1], rob.hubMotorRealSpeed[2], rob.hubMotorRealSpeed[3]);
-        // ROS_INFO("Pub StepMotor:position = [%f],[%f],[%f],[%f]", rob.stepMotorRealPosition[4], rob.stepMotorRealPosition[5], rob.stepMotorRealPosition[6], rob.stepMotorRealPosition[7]);
         
         ros::spinOnce();
         if(Mod != AgvCommond[0]){
@@ -202,13 +238,15 @@ int main(int argc, char* argv[])
             rob.motorSetPosition(2, AgvCommond[2]);
             rob.motorSetPosition(3, AgvCommond[3]);
             rob.motorSetPosition(4, AgvCommond[4]);
-            ROS_INFO("Set HubMotor:position = [%f],[%f],[%f],[%f]", AgvCommond[1], AgvCommond[2], AgvCommond[3], AgvCommond[4]);
+            // ROS_INFO("Set HubMotor:position = [%f],[%f],[%f],[%f]", AgvCommond[1], AgvCommond[2], AgvCommond[3], AgvCommond[4]);
         }
         rob.stepMotorSetPosition(5, AgvCommond[5]);
         rob.stepMotorSetPosition(6, AgvCommond[6]);
         rob.stepMotorSetPosition(7, AgvCommond[7]);
         rob.stepMotorSetPosition(8, AgvCommond[8]);
         ROS_INFO("Set StepMotor:position = [%f],[%f],[%f],[%f]", AgvCommond[5], AgvCommond[6], AgvCommond[7], AgvCommond[8]);
+
+        ROS_INFO("--------------------------------------------------\r\n\r\n");
     }
     return 0;
 } 

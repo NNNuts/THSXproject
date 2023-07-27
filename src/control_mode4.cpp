@@ -322,6 +322,8 @@ int main(int argc, char **argv)
                 {
                     Data[0] = Speed;
                     angle = 0;
+                    speed_left = 1;
+                    speed_right = 1;
                     Data[5] = 0;
                     Data[6] = 0;
                     Data[7] = 0;
