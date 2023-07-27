@@ -16,6 +16,13 @@
 
 #include "socketCAN.h"
 
+#include <Eigen/Core>
+#include <ccd/ccd.h>
+#define FCL_EXPORT
+#include "fcl/math/bv/utility.h"
+#include "fcl/narrowphase/collision.h"
+#include <iostream>
+
 // #include <linux/can.h>
 // #include <sys/types.h>
 // #include <sys/socket.h>
@@ -26,12 +33,15 @@
 // #include "controlcan.h"
 using namespace Eigen;
 using namespace std;
+using namespace fcl;
 
+// extern Target_data Tar;
+extern TrainComputer TC;
 class CAN2USB : public socketCAN                                  
 {
 private:
-    // double motorBias[6] = {0, 104.0/180*EIGEN_PI, -1.0/180*EIGEN_PI, 65.0/180*EIGEN_PI, 147.0/180*EIGEN_PI, 0};
-    double motorBias[6] = {-9.0/180*EIGEN_PI, 104.0/180*EIGEN_PI, -2.0/180*EIGEN_PI, 63.0/180*EIGEN_PI, 145.5/180*EIGEN_PI, 0};
+    double motorBias[6] = {-9.0/180*EIGEN_PI, 104.0/180*EIGEN_PI, -2.0/180*EIGEN_PI, 0.0/180*EIGEN_PI, 0/180*EIGEN_PI, 0};
+    // double motorBias[6] = {-9.0/180*EIGEN_PI, 104.0/180*EIGEN_PI, -2.0/180*EIGEN_PI, 63.0/180*EIGEN_PI, 145.5/180*EIGEN_PI, 0};
     double motorDir[6] = {1, 1, -1, 1, 1, 1};
     double jointsLimit[6][2] = {-180./180*EIGEN_PI, 180./180*EIGEN_PI, 
                                 -210./180*EIGEN_PI,  30./180*EIGEN_PI,
@@ -137,6 +147,7 @@ public:
         // clearCanData();
 
         canSend(Can, 0x600 + ID, 8, 0x237A600000000000 + rad2Hex(position));
+        // cout<<"send "<<rad2Hex(position)<<endl;
         // sendAck(ID,0x237A600000000000);
         canSend(Can, 0x600 + ID, 8, 0x2B4060002F000000);
         // sendAck(ID,0x2B4060002F000000);
@@ -193,7 +204,7 @@ public:
                 {
                     // cout<<"ReadCheck "<<ID<<endl;
                     double position = CanReadData[Can][i].data[7] * 256 * 256 * 256 + CanReadData[Can][i].data[6] * 256 * 256 + CanReadData[Can][i].data[5] * 256 + CanReadData[Can][i].data[4];
-                    // cout<<"position "<<position<<endl;
+                    cout<<"position "<<position<<endl;
                     if(position > 0x80000000)
                         position = position - 0x100000000;
                     CanReadDataNum[Can] = 0;
@@ -398,6 +409,7 @@ public:
 
     long rad2Hex(double rad)
     {
+        // cout<<"rad "<<rad<<endl;
         long positionData = rad / EIGEN_PI * 16384 * 100;
         // cout << "Hex " << positionData << endl;
         return num2Hex(positionData);
@@ -406,6 +418,8 @@ public:
     long num2Hex(long num)
     {
         long hexData = 0;
+        // uint32_t num1 = num;
+        // cout<<"num "<<num<<endl;
         if(num<0)
         {
             num = 0x100000000 + num;
@@ -438,13 +452,17 @@ public:
     {
         double position = motorReadPosition(ID);
         position = (position - motorBias[ID - 1]) * motorDir[ID - 1];
+        if(position>EIGEN_PI)
+            position = position - 2*EIGEN_PI;
+        if(position<-EIGEN_PI)
+            position = position + 2*EIGEN_PI;
         return position;
     }
 
     void robotSetPositionAll(double rad[6])
     {
         // checkJointLimit(rad);
-        if(Tar.robotIsSelfCollide(rad))
+        if(robotIsSelfCollide(rad))
         {
             cout<<"发生碰撞"<<endl;
             exit(0);
@@ -495,6 +513,180 @@ public:
         }
     }
 
+    int isCollide(CollisionObjectd linkA, CollisionObjectd LinkB)
+    {
+        CollisionRequestd request;
+        CollisionResultd result;
+        
+        // 进行碰撞检测
+        collide(&linkA, &LinkB, request, result);
+        // collide(&Link1, &Link3, request, result);
+        
+        // 输出碰撞结果
+        if (result.isCollision()) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    int robotIsSelfCollide(double jointTheta[6])
+    {
+        double err = 40;
+        Matrix4d T1;
+        T1.setIdentity(4, 4);
+        T1(2, 3) = 295.14 / 2;
+        // cout << T1 << endl;
+        Vector3d vec1(T1(0, 3), T1(1, 3), T1(2, 3));
+        Matrix3d mat1 = T1.block<3, 3>(0, 0);
+        auto CylinderLink1 = make_shared<Boxd>(152 + err, 152 + err, 295.14 + err);
+        CollisionObjectd Link1(CylinderLink1);
+        Link1.setTranslation(vec1);
+        Link1.setRotation(mat1);
+
+        Matrix4d T2;
+        T2.setIdentity(4, 4);
+        T2(2, 3) = 196.44 / 2 + 152 / 2;
+        T2 = TC.Trans(0,jointTheta[0]) * T2;
+        // cout << "T2 " << T2 << endl;
+        Vector3d vec2(T2(0, 3), T2(1, 3), T2(2, 3));
+        Matrix3d mat2 = T2.block<3, 3>(0, 0);
+        auto CylinderLink2 = make_shared<Boxd>(152 + err, 152 + err, 196.44 + err);
+        CollisionObjectd Link2(CylinderLink2);
+        Link2.setTranslation(vec2);
+        Link2.setRotation(mat2);
+
+        Matrix4d T3;
+        T3.setIdentity(4, 4);
+        T3(0, 3) = (450 / 2 + 152 / 2);
+        T3(2, 3) = 206;
+        T3.block<3,3>(0,0) = (AngleAxisd(0, Vector3d::UnitZ())
+                            * AngleAxisd(EIGEN_PI/2, Vector3d::UnitY())
+                            * AngleAxisd(0, Vector3d::UnitX())).toRotationMatrix();
+
+        T3 = TC.Trans(0,jointTheta[0]) * TC.Trans(1,jointTheta[1])  * T3;
+        // cout << "T3 " << T3 << endl;
+        Vector3d vec3(T3(0, 3), T3(1, 3), T3(2, 3));
+        Matrix3d mat3 = T3.block<3, 3>(0, 0);
+        auto CylinderLink3 = make_shared<Boxd>(110 + err, 110 + err, 450 + err);
+        CollisionObjectd Link3(CylinderLink3);
+        Link3.setTranslation(vec3);
+        Link3.setRotation(mat3);
+
+        Matrix4d T4;
+        T4.setIdentity(4, 4);
+        T4(2, 3) = 206 / 2;
+        T4 = TC.Trans(0,jointTheta[0]) * TC.Trans(1,jointTheta[1]) * T4;
+        // cout << "T4 " << T4 << endl;
+        Vector3d vec4(T4(0, 3), T4(1, 3), T4(2, 3));
+        Matrix3d mat4 = T4.block<3, 3>(0, 0);
+        auto CylinderLink4 = make_shared<Boxd>(120 + err, 120 + err, 349.41 + err);
+        CollisionObjectd Link4(CylinderLink4);
+        Link4.setTranslation(vec4);
+        Link4.setRotation(mat4);
+
+        Matrix4d T5;
+        T5.setIdentity(4, 4);
+        T5(0, 3) = 571.1 / 2;
+        T5(2, 3) = 16;
+        T5.block<3,3>(0,0) = (AngleAxisd(0, Vector3d::UnitZ())
+                            * AngleAxisd(EIGEN_PI/2, Vector3d::UnitY())
+                            * AngleAxisd(0, Vector3d::UnitX())).toRotationMatrix();
+        T5 = TC.Trans(0,jointTheta[0]) * TC.Trans(1,jointTheta[1]) * TC.Trans(2,jointTheta[2]) * T5;
+        // cout << "T5 " << T5 << endl;
+        Vector3d vec5(T5(0, 3), T5(1, 3), T5(2, 3));
+        Matrix3d mat5 = T5.block<3, 3>(0, 0);
+        auto CylinderLink5 = make_shared<Boxd>(90 + err, 90 + err, 435.6 + err);
+        CollisionObjectd Link5(CylinderLink5);
+        Link5.setTranslation(vec5);
+        Link5.setRotation(mat5);
+
+        Matrix4d T6;
+        T6.setIdentity(4, 4);
+        T6(2, 3) = 25;
+        T6 = TC.Trans(0,jointTheta[0]) * TC.Trans(1,jointTheta[1]) * TC.Trans(2,jointTheta[2]) * T6;
+        // cout << "T6 " << T6 << endl;
+        Vector3d vec6(T6(0, 3), T6(1, 3), T6(2, 3));
+        Matrix3d mat6 = T6.block<3, 3>(0, 0);
+        auto CylinderLink6 = make_shared<Boxd>(90 + err, 90 + err, 169.04 + err);
+        CollisionObjectd Link6(CylinderLink6);
+        Link6.setTranslation(vec6);
+        Link6.setRotation(mat6);
+
+        Matrix4d T7;
+        T7.setIdentity(4, 4);
+        T7(2, 3) = 10;
+        T7 = TC.Trans(0,jointTheta[0]) * TC.Trans(1,jointTheta[1]) * TC.Trans(2,jointTheta[2]) * TC.Trans(3,jointTheta[3]) * T7;
+        // cout << "T7 " << T7 << endl;
+        Vector3d vec7(T7(0, 3), T7(1, 3), T7(2, 3));
+        Matrix3d mat7 = T7.block<3, 3>(0, 0);
+        auto CylinderLink7 = make_shared<Boxd>(90 + err, 90 + err, 127.19 + err);
+        CollisionObjectd Link7(CylinderLink7);
+        Link7.setTranslation(vec7);
+        Link7.setRotation(mat7);
+
+        Matrix4d T8;
+        T8.setIdentity(4, 4);
+        T8(2, 3) = 10;
+        T8 = TC.Trans(0,jointTheta[0]) * TC.Trans(1,jointTheta[1]) * TC.Trans(2,jointTheta[2]) * TC.Trans(3,jointTheta[3]) * TC.Trans(4,jointTheta[4]) * T8;
+        // cout << "T8 " << T8 << endl;
+        Vector3d vec8(T8(0, 3), T8(1, 3), T8(2, 3));
+        Matrix3d mat8 = T8.block<3, 3>(0, 0);
+        auto CylinderLink8 = make_shared<Boxd>(90 + err, 90 + err, 170.4 + err);
+        CollisionObjectd Link8(CylinderLink8);
+        Link8.setTranslation(vec8);
+        Link8.setRotation(mat8);
+
+        if(isCollide(Link1,Link5))
+        {
+            // cout<<"1 5 碰撞"<<endl;
+            return 15;
+        }
+        if(isCollide(Link1,Link6))
+        {
+            // cout<<"1 6 碰撞"<<endl;
+            return 16;
+        }
+        if(isCollide(Link1,Link8))
+        {
+            // cout<<"1 8 碰撞"<<endl;
+            return 18;
+        }
+
+        if(isCollide(Link2,Link6))
+        {
+            // cout<<"2 6 碰撞"<<endl;
+            return 26;
+        }
+        if(isCollide(Link2,Link7))
+        {
+            // cout<<"2 7 碰撞"<<endl;
+            return 27;
+        }
+        if(isCollide(Link2,Link8))
+        {
+            // cout<<"2 8 碰撞"<<endl;
+            return 28;
+        }
+
+        if(isCollide(Link3,Link7))
+        {
+            // cout<<"3 7 碰撞"<<endl;
+            return 37;
+        }
+        if(isCollide(Link3,Link8))
+        {
+            // cout<<"3 8 碰撞"<<endl;
+            return 38;
+        }
+
+        if(isCollide(Link5,Link8))
+        {
+            // cout<<"5 8 碰撞"<<endl;
+            return 58;
+        }
+        return 0;
+    }
 };
 
 

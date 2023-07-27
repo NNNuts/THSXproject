@@ -83,7 +83,22 @@ int main(int argc, char* argv[])
     // rob.robotSetPosition(5,rob.deg2rad(0));
     // rob.robotSetPosition(6,rob.deg2rad(0));
 
-    // exit(0);
+    // cout<<rob.robotReadPosition(4)<<endl;
+    rob.robotSetPosition(4,rob.deg2rad(0));
+    // for(int i=0;i<100;i++)
+    // {
+    //     rob.robotSetPosition(5,rob.deg2rad(-90));
+    //     usleep(5000000);
+    //     cout<<"setPosition "<< -90 <<endl;
+    //     cout<<rob.robotReadPosition(5)<<endl<<endl;
+
+    //     rob.robotSetPosition(5,rob.deg2rad(90));
+    //     usleep(5000000);
+    //     cout<<"setPosition "<< 90 <<endl;
+    //     cout<<rob.robotReadPosition(5)<<endl<<endl;
+    // }
+
+    exit(0);
     //-------------------------
 
 
