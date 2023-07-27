@@ -103,7 +103,7 @@ double runspeed = 0.1;
 double speed_left = 1;
 double speed_right = 1;
 double angle = 0;
-double turnSpeed = 280;
+double turnSpeed = 150;
 // int stopMod = false;
 int main(int argc, char **argv)
 {

@@ -17,7 +17,7 @@ int stopNum = 5;
 double stopSpeed = 0.02;
 double speed = 0;
 double runspeed = 0.5;
-double turnSpeed = 280;
+double turnSpeed = 150;
 
 int stopMod = false;
 int main(int argc, char **argv)
