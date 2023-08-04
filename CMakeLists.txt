@@ -37,7 +37,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -61,6 +61,9 @@ add_executable(control_mode3 src/control_mode3.cpp)
 add_executable(control_mode4 src/control_mode4.cpp)
 add_executable(control_mode5 src/control_mode5.cpp)
 add_executable(HubMotor src/HubMotor.cpp)
+
+add_executable(MotionControl src/MotionControl.cpp 
+)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -103,3 +106,10 @@ target_link_libraries(HubMotor
  #${PROJECT_SOURCE_DIR}/lib/lib_emuc2_64.a
 )
 
+# add_library(PID ${INCLUDE_DIR}/HubMotor_pkg/PID.hpp)
+
+target_link_libraries(MotionControl
+ ${catkin_LIBRARIES}
+#  PID
+ 
+)
