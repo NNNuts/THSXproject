@@ -19,9 +19,9 @@ double ControlHz = 100;
 
 double AGV_states[3] = {10000, 10000, 0};
 double AGV_control_state[2] = {0, 0};
-double Path[100][2] = {0, 0, 0, 0};
+double Path[100][2] = {1, 1}; // 设置路径点
 double PathNum = 1;
-int PathTar = 1;
+int PathTar = 0;
 // dic dir
 double AGV_ERR[2] = {0, 0}; 
 // P I D maxChange maxlimit
@@ -38,12 +38,15 @@ PID DirectionPid(PID_dir[0], PID_dir[1], PID_dir[2]);
 void init(void)
 {
     ros::Rate delay_rate(1000);
+    ROS_INFO("等待AGV定位");
     while(AGV_states[0]>5000 || AGV_states[1]>5000){
         delay_rate.sleep();
+        ros::spinOnce();
     }    
-    Path[0][0] = AGV_states[0];
-    Path[0][1] = AGV_states[1];
-    PathTar = 1;
+    // Path[0][0] = AGV_states[0];
+    // Path[0][1] = AGV_states[1];
+    PathTar = 0;
+    ROS_INFO("AGV定位成功,当前位置为: %f, %f", AGV_states[0], AGV_states[1]);
 }
 
 void LidarOdoCallback(const nav_msgs::Odometry::ConstPtr& msg){
@@ -55,8 +58,10 @@ void LidarOdoCallback(const nav_msgs::Odometry::ConstPtr& msg){
     AGV_states[2] = eulerAngle[0];
 
     //偏移矫正
-    AGV_states[0] -= 260 * cos(AGV_states[2]);
-    AGV_states[1] -= 260 * cos(AGV_states[2]);
+    AGV_states[0] -= 0.260 * cos(AGV_states[2]);
+    AGV_states[1] -= 0.260 * cos(AGV_states[2]);
+    // ROS_INFO("AGV当前位置为: %f, %f", msg->pose.pose.position.x, msg->pose.pose.position.y);
+
 }
 
 std_msgs::Float32MultiArray CotrolCal(void)
@@ -87,7 +92,7 @@ std_msgs::Float32MultiArray CotrolCal(void)
         dir_left    = 0;
     }
 
-    msg.data.push_back(speed);
+    msg.data.push_back(Speed);
     msg.data.push_back(speed_left);
     msg.data.push_back(speed_left);
     msg.data.push_back(speed_right);
@@ -146,19 +151,22 @@ void AGV_ConCal(void)
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "KeyBoard");
+    ros::init(argc, argv, "MotionControl");
     ros::NodeHandle nh;
  
     ros::Publisher AGV_ontrol_pub = nh.advertise<std_msgs::Float32MultiArray>("AgvControl", 1000);
-    ros::Subscriber LidarOdo_sub = nh.subscribe("odmo", 1000, LidarOdoCallback);
+    ros::Subscriber LidarOdo_sub = nh.subscribe("odom", 1000, LidarOdoCallback);
     setlocale(LC_ALL, "");
-    ROS_INFO("Warning!");
+    // ROS_INFO("Warning!");
     ROS_INFO("运控启动");
     ros::Rate loop_rate(ControlHz);
     char ch;
     init();
     while (ros::ok())
     {
+        ROS_INFO("当前位置为: %f, %f, %f", AGV_states[0], AGV_states[1], AGV_states[2]);
+        ROS_INFO("目标位置为: %f, %f", Path[PathTar][0], Path[PathTar][1]);
+        ROS_INFO("控制速度为: %f, 方向为：%f", AGV_control_state[0], AGV_control_state[1]);
         CalAGVERR();
         AGV_ConCal();
         std_msgs::Float32MultiArray msg = CotrolCal();
