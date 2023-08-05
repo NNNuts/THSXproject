@@ -41,3 +41,12 @@ source ./devel/setup.bash; rosrun HubMotor_pkg MotionControl
 需要 HubMotor 和 MontionControl 两个节点
 Path是路径点，x 和 y 当前仅支持单点路径
 效果应当为跑到目标点后停止
+
+
+---------------------更新日志---------------------
+*230805* 
+MotionControl： 初步完成多点路径运控系统
+在 Path 中设置路径，Path[0] 为初始化时读取的当前位置，不需设置,后边每一组为一个路径点
+在 PathNum 中设置路径点数目，为不包含 Path[0] 后的路径点数目
+在 PathSpeed 中设置路径速度，单位 m/s
+在 HubMotor_Enable 和 TurnMotor_Enable 中可以设置电机使能状态

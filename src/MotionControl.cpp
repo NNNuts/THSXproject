@@ -23,9 +23,9 @@ double Path[100][2] = { 0,  0,
                        -3, -3, 
                         0,  0, 
                        -3, -3}; 
-
 // 路径点数
 int PathNum = 3;
+
 // 路径速度
 double PathSpeed = 0.2;
 // 路径时间
@@ -35,20 +35,21 @@ double PathTime = 0;
 // 路径使能
 int PathEnable = false;
 
-int PathTar = 0;
+// int PathTar = 0;
 // 实时路径点
 double realTimePathPoint[2] = {0, 0};
 // dic dir
 double AGV_ERR[2] = {0, 0}; 
-// P I D maxChange maxlimit
-double PID_spd[5] = {  1, 0, 0, 0.5,      0.5};
-double PID_dir[5] = {  1, 0, 0, 1, EIGEN_PI/4};
-double AGV_controlStates[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+//                     P  I  D  maxChange    maxlimit
+double PID_spd[5] = {  1, 0, 0,       0.5,        0.5};
+double PID_dir[5] = {  1, 0, 0,         1, EIGEN_PI/4};
+
 // 运动模式切换阈值
 // double threshold = 0.8;
+
 // 轮毂电机及转向电机使能
-int HubMotor_Enable = 0;
-int TurnMotor_Enable = 0;
+int HubMotor_Enable  = true;
+int TurnMotor_Enable = true;
 
 enum
 {
@@ -78,8 +79,8 @@ void init(void)
     Path[0][0] = AGV_states[0];
     Path[0][1] = AGV_states[1];
     AGV_Move_State = AGV_Move_Ackermann;
-    HubMotor_Enable = true;
-    TurnMotor_Enable = true;
+    // HubMotor_Enable = true;
+    // TurnMotor_Enable = true;
     PathEnable = true;
     PathTime = 0;
     ROS_INFO("AGV定位成功,当前位置为: %f, %f", AGV_states[0], AGV_states[1]);
