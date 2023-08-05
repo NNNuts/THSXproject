@@ -20,11 +20,14 @@ data[5:8] 是四个步进电机位置，单位rad
 
 按CTRL+SHIFT+B，然后回车编译文件
 
-第一个终端 roscore
-第二个终端 source ./devel/setup.bash
-         rosrun HubMotor HubMotor
-第三个终端 source ./devel/setup.bash
-         rosrun HubMotor control
+cd ~/RosWorkSpace/
+第一个终端 
+roscore
+第二个终端 
+source ./devel/setup.bash; rosrun HubMotor_pkg HubMotor
+第三个终端 
+source ./devel/setup.bash; rosrun HubMotor_pkg MotionControl
+
 
 模式一 control_mode1 双阿克曼
 模式二 control_mode2 斜移
