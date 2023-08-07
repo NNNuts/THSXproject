@@ -3,6 +3,7 @@
 #include "std_msgs/Float32MultiArray.h"
 #include <iostream>
 #include <Eigen/Dense>
+#include <signal.h>
 #include <HubMotor_pkg/PID.hpp>
 using namespace std;
 using namespace Eigen;
@@ -67,6 +68,8 @@ double AGV_ERR[2] = {0, 0};
 double PID_spd[5] = {  1, 0, 0,       0.5,        PathSpeed};
 double PID_dir[5] = {  1, 0, 0,         2, 60./180*EIGEN_PI};
 
+ros::Publisher AGV_control_pub;
+
 // 运动模式切换阈值
 // double threshold = 0.8;
 
@@ -94,6 +97,21 @@ void init(void)
     PathEnable = Path_State_Run;
     PathTime = 0;
     ROS_INFO("AGV定位成功,当前位置为: %f, %f", AGV_states[0], AGV_states[1]);
+}
+
+void MotionControlExit(int sig)
+{
+	//这里进行退出前的数据保存、内存清理、告知其他节点等工作
+    // rob.canClose();
+
+    std_msgs::Float32MultiArray msg;
+    msg.data.push_back(Speed);
+    for(int i=0;i<8;i++)
+        msg.data.push_back(0);
+    AGV_control_pub.publish(msg);
+	ROS_INFO("MotionControl shutting down!");
+	ros::shutdown();
+    exit(0);
 }
 
 // 雷达回调函数
@@ -370,12 +388,14 @@ void AGV_ConCal(void)
     }
 }
 
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "MotionControl");
     ros::NodeHandle nh;
  
-    ros::Publisher AGV_ontrol_pub = nh.advertise<std_msgs::Float32MultiArray>("AgvControl", 1000);
+    signal(SIGINT, MotionControlExit);
+    AGV_control_pub = nh.advertise<std_msgs::Float32MultiArray>("AgvControl", 1000);
     ros::Subscriber LidarOdo_sub = nh.subscribe("odom", 1000, LidarOdoCallback);
     setlocale(LC_ALL, "");
     // ROS_INFO("Warning!");
@@ -389,7 +409,7 @@ int main(int argc, char **argv)
         CalAGVERR();
         AGV_ConCal();
         std_msgs::Float32MultiArray msg = CotrolCal();
-        AGV_ontrol_pub.publish(msg);
+        AGV_control_pub.publish(msg);
         ROS_INFO("当前位置为: %f, %f, %f", AGV_states[0], AGV_states[1], AGV_states[2]*180/3.1415);
         ROS_INFO("目标位置为: %f, %f", realTimePathPoint[0], realTimePathPoint[1]);
         ROS_INFO("control speed is: %f, angular is %f", AGV_control_state[0],AGV_control_state[1]*180/3.1415);
