@@ -13,21 +13,44 @@ enum
     Speed,
     Position
 };
+enum
+{
+    AGV_Move_Stop,
+    AGV_Move_Ackermann,
+    AGV_Move_Skewing
+};
+enum
+{
+    Path_State_Stop,
+    Path_State_Run,
+    Path_State_WatingStop
+};
 
 double ControlHz = 100;
 
 double AGV_states[3] = {10000, 10000, 0};
 double AGV_control_state[2] = {0, 0};
 // 设置路径点
-double Path[100][2] = { 0,  0, 
-                       -3, -3, 
-                        0,  0, 
-                       -3, -3}; 
+double Path[100][2] = { 0.0,  0.0,
+                        0.0,  0.0,
+                       -3.0, -3.0, 
+                       -5.0, -4.0,
+                        0.0,  0.0,
+                       -3.0, -3.0, 
+                       -5.0, -4.0,
+                        0.0,  0.0,
+                       -3.0, -3.0, 
+                       -5.0, -4.0,
+                        0.0,  0.0,
+                       -3.0, -3.0, 
+                        0.0,  0.0, 
+                       -3.0, -3.0,
+                        0.0,  0.0,}; 
 // 路径点数
-int PathNum = 3;
+int PathNum = 9;
 
 // 路径速度
-double PathSpeed = 0.2;
+double PathSpeed = 0.3;
 // 路径时间
 double PathTime = 0;
 // // 路径距离
@@ -40,9 +63,9 @@ int PathEnable = false;
 double realTimePathPoint[2] = {0, 0};
 // dic dir
 double AGV_ERR[2] = {0, 0}; 
-//                     P  I  D  maxChange    maxlimit
-double PID_spd[5] = {  1, 0, 0,       0.5,        0.5};
-double PID_dir[5] = {  1, 0, 0,         1, EIGEN_PI/4};
+//                     P  I  D  maxChange           maxlimit
+double PID_spd[5] = {  1, 0, 0,       0.5,        PathSpeed};
+double PID_dir[5] = {  1, 0, 0,         2, 60./180*EIGEN_PI};
 
 // 运动模式切换阈值
 // double threshold = 0.8;
@@ -50,22 +73,9 @@ double PID_dir[5] = {  1, 0, 0,         1, EIGEN_PI/4};
 // 轮毂电机及转向电机使能
 int HubMotor_Enable  = true;
 int TurnMotor_Enable = true;
-
-enum
-{
-    AGV_Move_Stop,
-    AGV_Move_Ackermann,
-    AGV_Move_Skewing
-};
-
-
-
 double AGV_Move_State;
-
-
 PID SpeedPid(PID_spd[0], PID_spd[1], PID_spd[2]);
 PID DirectionPid(PID_dir[0], PID_dir[1], PID_dir[2]);
-
 
 // 初始化
 void init(void)
@@ -81,7 +91,7 @@ void init(void)
     AGV_Move_State = AGV_Move_Ackermann;
     // HubMotor_Enable = true;
     // TurnMotor_Enable = true;
-    PathEnable = true;
+    PathEnable = Path_State_Run;
     PathTime = 0;
     ROS_INFO("AGV定位成功,当前位置为: %f, %f", AGV_states[0], AGV_states[1]);
 }
@@ -131,18 +141,25 @@ void realTimePathPointCal(void)
     double PathDistance = PathSpeed * PathTime;
     for(int i=0; i<PathNum; i++){
         if(PathDistance < sqrt((Path[i+1][1]-Path[i][1])*(Path[i+1][1]-Path[i][1])+(Path[i+1][0]-Path[i][0])*(Path[i+1][0]-Path[i][0]))){
-            realTimePathPoint[0] = Path[i][0] + PathDistance * (Path[i+1][0]-Path[i][0]) / sqrt((Path[i+1][1]-Path[i][1])*(Path[i+1][1]-Path[i][1])+(Path[i+1][0]-Path[i][0])*(Path[i+1][0]-Path[i][0]));
-            realTimePathPoint[1] = Path[i][1] + PathDistance * (Path[i+1][1]-Path[i][1]) / sqrt((Path[i+1][1]-Path[i][1])*(Path[i+1][1]-Path[i][1])+(Path[i+1][0]-Path[i][0])*(Path[i+1][0]-Path[i][0]));
-            PathEnable = true;
+            // 实时路径离散点
+            // realTimePathPoint[0] = Path[i][0] + PathDistance * (Path[i+1][0]-Path[i][0]) / sqrt((Path[i+1][1]-Path[i][1])*(Path[i+1][1]-Path[i][1])+(Path[i+1][0]-Path[i][0])*(Path[i+1][0]-Path[i][0]));
+            // realTimePathPoint[1] = Path[i][1] + PathDistance * (Path[i+1][1]-Path[i][1]) / sqrt((Path[i+1][1]-Path[i][1])*(Path[i+1][1]-Path[i][1])+(Path[i+1][0]-Path[i][0])*(Path[i+1][0]-Path[i][0]));
+            
+            //  目标路径点
+            realTimePathPoint[0] = Path[i+1][0];
+            realTimePathPoint[1] = Path[i+1][1];
+
+            PathEnable = Path_State_Run;
             break;
         }
         else{
             PathDistance -= sqrt((Path[i+1][1]-Path[i][1])*(Path[i+1][1]-Path[i][1])+(Path[i+1][0]-Path[i][0])*(Path[i+1][0]-Path[i][0]));
             realTimePathPoint[0] = Path[PathNum][0];
             realTimePathPoint[1] = Path[PathNum][1];
-            PathEnable = false;
+            PathEnable = Path_State_WatingStop;
         }
     }
+    ROS_INFO("realTimePathPoint = %f, %f", realTimePathPoint[0], realTimePathPoint[1]);
 }
 
 // AGV控制帧计算
@@ -173,11 +190,11 @@ std_msgs::Float32MultiArray CotrolCal(void)
         dir_right   = 0;
         dir_left    = 0;
     }
-    if(HubMotor_Enable == false){
+    if(HubMotor_Enable == false || PathEnable == Path_State_Stop){
         speed_left  = 0;
         speed_right = 0;
     }
-    if(TurnMotor_Enable == false){
+    if(TurnMotor_Enable == false || PathEnable == Path_State_Stop){
         dir_right   = 0;
         dir_left    = 0;
     }
@@ -203,14 +220,23 @@ void CalAGVERR(void)
         AGV_ERR[1] -= 2*EIGEN_PI;
     else if(AGV_ERR[1] < -EIGEN_PI)
         AGV_ERR[1] += 2*EIGEN_PI;
-    AGV_ERR[0] = sqrt((realTimePathPoint[1]-AGV_states[1]*(realTimePathPoint[1]-AGV_states[1]))+(realTimePathPoint[0]-AGV_states[0])*(realTimePathPoint[0]-AGV_states[0]));
-    
+    AGV_ERR[0] = sqrt(((realTimePathPoint[1]-AGV_states[1])*(realTimePathPoint[1]-AGV_states[1]))+(realTimePathPoint[0]-AGV_states[0])*(realTimePathPoint[0]-AGV_states[0]));
+    // 判断是否需要倒车
+    if(AGV_ERR[1] > EIGEN_PI/2 || AGV_ERR[1] < -EIGEN_PI/2)
+        AGV_ERR[0] = -AGV_ERR[0];
+
+    // 距离低于3cmm时，停止修正方向
+    if(fabs(AGV_ERR[0]) < 0.03){
+        AGV_ERR[1] = 0;
+        if(PathEnable == Path_State_WatingStop)
+            PathEnable = Path_State_Stop;
+    }
     // AGV_ERR[0] 减去阈值
     // AGV_ERR[0] = AGV_ERR[0] - threshold * 0.5;
 
     
-    AGV_ERR[0] = cos(AGV_ERR[1]) * AGV_ERR[0];
-    // ROS_INFO("AGV_ERR = %f, %f", AGV_ERR[0], AGV_ERR[1]*180/3.1415);
+    // AGV_ERR[0] = cos(AGV_ERR[1]) * AGV_ERR[0];
+    ROS_INFO("AGV_ERR = %f, %f", AGV_ERR[0], AGV_ERR[1]*180/3.1415);
     // if(fabs(AGV_ERR[0]) > 1)
     //     AGV_Move_State = AGV_Move_Ackermann;
     // else if(fabs(AGV_ERR[0]) > 0.1)
