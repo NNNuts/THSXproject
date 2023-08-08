@@ -33,33 +33,66 @@ double AGV_states[3] = {10000, 10000, 0};
 double AGV_control_state[2] = {0, 0};
 // 设置路径点
 double Path[100][2] = { 0.0,  0.0,
+                        0.0671353, 0.509237,
+                        -0.0183819, 1.74058,
+                        0.284655, 4.15835,
+                        0.25155,  5.83538,
+                        0.284222, 7.75411,
+                        0.20073 ,  9.21236,
+                        0.24905, 11.2782,
+                        0.15218, 13.2517,
+                        0.16506, 15.1846, 
+                        0.269441, 16.6759, 
+                        0.144265, 18.4421,
+                        0.0620191, 20.5677,
+                        -0.00233865, 22.8672,
+                        0.311233, 24.3077,
+                        -0.841656, 25.936,
+                        -0.74615, 27.2339,
+                        -0.381216, 30.136,
+                        0.159494, 32.4538,
+                        0.105583, 33.8914,
+                        0.161139, 35.5936,
+                        0.0980997, 37.3526,
+                        0.205923, 39.4603,
+                        0.300056, 41.1346,
+                        0.235526, 43.7409,
+                        0.181987, 45.5715,
+                        0.144904, 47.4642,
+                        0.196856, 48.4696,
+                        0.181917, 50.2633,
+                        0.263119, 52.1449,
+                        0.0123597, 54.0096,
+                        -0.038867, 54.8104,
+                        -0.0213329, 56.4802,
+                        0.0210161, 57.9339,
+                        -0.114004, 60.1717, 
                         0.0,  0.0,
                        -3.0, -3.0, 
                        -5.0, -4.0,
                         0.0,  0.0,
                        -3.0, -3.0, 
                        -5.0, -4.0,
-                        0.0,  0.0,
+                        0.0,  0.0, 
                        -3.0, -3.0, 
                        -5.0, -4.0,
                         0.0,  0.0,
                        -3.0, -3.0, 
                         0.0,  0.0, 
                        -3.0, -3.0,
-                        0.0,  0.0,}; 
+                        0.0,  0.0}; 
 // 路径点数
-int PathNum = 9;
+int PathNum = 30;
 
 // 路径速度
 double PathSpeed = 0.3;
 // 路径时间
 double PathTime = 0;
-// // 路径距离
-// double PathDistance = 0;
+
 // 路径使能
 int PathEnable = false;
 
-// int PathTar = 0;
+
 // 实时路径点
 double realTimePathPoint[2] = {0, 0};
 // dic dir
@@ -68,15 +101,18 @@ double AGV_ERR[2] = {0, 0};
 double PID_spd[5] = {  1, 0, 0,       0.5,        PathSpeed};
 double PID_dir[5] = {  1, 0, 0,         2, 60./180*EIGEN_PI};
 
+// 末端斜移阈值
+double Skewing_threshold = 0.1;
+// 末端定位精度
+double End_position_accuracy = 0.01;
+
 ros::Publisher AGV_control_pub;
 
-// 运动模式切换阈值
-// double threshold = 0.8;
 
 // 轮毂电机及转向电机使能
 int HubMotor_Enable  = true;
 int TurnMotor_Enable = true;
-double AGV_Move_State;
+int AGV_Move_State;
 PID SpeedPid(PID_spd[0], PID_spd[1], PID_spd[2]);
 PID DirectionPid(PID_dir[0], PID_dir[1], PID_dir[2]);
 
@@ -184,29 +220,39 @@ void realTimePathPointCal(void)
 std_msgs::Float32MultiArray CotrolCal(void)
 {
     std_msgs::Float32MultiArray msg;
-    double dir = AGV_control_state[1];
-    double speed = AGV_control_state[0]; 
     double speed_left,speed_right;
     double dir_left,dir_right;
-    if(dir>0){
-        double T = 245/tan(dir);
-        speed_left  = (T-235)/T * speed;
-        speed_right = (T+235)/T * speed;
-        dir_left    = atan2(245,T-235);
-        dir_right   = atan2(245,T+235);
+    double dir = AGV_control_state[1];
+    double speed = AGV_control_state[0]; 
+    if(AGV_Move_State == AGV_Move_Ackermann){ 
+        if(dir>0){
+            double T = 245/tan(dir);
+            speed_left  = (T-235)/T * speed;
+            speed_right = (T+235)/T * speed;
+            dir_left    = atan2(245,T-235);
+            dir_right   = atan2(245,T+235);
+        }
+        else if(dir<0){
+            double T = 245/tan(-dir);
+            speed_left  = (T+235)/T * speed;
+            speed_right = (T-235)/T * speed;
+            dir_left    = -atan2(245,T+235);
+            dir_right   = -atan2(245,T-235);
+        }
+        else{
+            speed_left  = speed;
+            speed_right = speed;
+            dir_right   = 0;
+            dir_left    = 0;
+        }
     }
-    else if(dir<0){
-        double T = 245/tan(-dir);
-        speed_left  = (T+235)/T * speed;
-        speed_right = (T-235)/T * speed;
-        dir_left    = -atan2(245,T+235);
-        dir_right   = -atan2(245,T-235);
+    else if(AGV_Move_State == AGV_Move_Skewing){
+        speed_left = speed_right = speed;
+        dir_left   = dir_right   = dir;
     }
     else{
-        speed_left  = speed;
-        speed_right = speed;
-        dir_right   = 0;
-        dir_left    = 0;
+        speed_left = speed_right = 0;
+        dir_left   = dir_right   = 0;
     }
     if(HubMotor_Enable == false || PathEnable == Path_State_Stop){
         speed_left  = 0;
@@ -219,7 +265,7 @@ std_msgs::Float32MultiArray CotrolCal(void)
     msg.data.push_back(Speed);
     msg.data.push_back(speed_left);
     msg.data.push_back(speed_left);
-    msg.data.push_back(speed_right);
+    msg.data.push_back(speed_left);
     msg.data.push_back(speed_right);
     msg.data.push_back(dir_left);
     msg.data.push_back(-dir_left);
@@ -231,30 +277,32 @@ std_msgs::Float32MultiArray CotrolCal(void)
 // 更新AGV_ERR
 void CalAGVERR(void)
 {
-    // AGV_states[2] = AGV_states[2] + (48+55)/180*3.1415;
+    // 计算偏差距离
+    AGV_ERR[0] = sqrt(((realTimePathPoint[1]-AGV_states[1])*(realTimePathPoint[1]-AGV_states[1]))+(realTimePathPoint[0]-AGV_states[0])*(realTimePathPoint[0]-AGV_states[0]));
+    
+    // 计算偏差角度
     AGV_ERR[1] = atan2(realTimePathPoint[1]-AGV_states[1],realTimePathPoint[0]-AGV_states[0]);
     AGV_ERR[1] = AGV_ERR[1] - AGV_states[2];
     if(AGV_ERR[1] > EIGEN_PI)
         AGV_ERR[1] -= 2*EIGEN_PI;
     else if(AGV_ERR[1] < -EIGEN_PI)
         AGV_ERR[1] += 2*EIGEN_PI;
-    AGV_ERR[0] = sqrt(((realTimePathPoint[1]-AGV_states[1])*(realTimePathPoint[1]-AGV_states[1]))+(realTimePathPoint[0]-AGV_states[0])*(realTimePathPoint[0]-AGV_states[0]));
     // 判断是否需要倒车
     if(AGV_ERR[1] > EIGEN_PI/2 || AGV_ERR[1] < -EIGEN_PI/2)
         AGV_ERR[0] = -AGV_ERR[0];
 
     // 距离低于3cmm时，停止修正方向
-    if(fabs(AGV_ERR[0]) < 0.03){
-        AGV_ERR[1] = 0;
-        if(PathEnable == Path_State_WatingStop)
-            PathEnable = Path_State_Stop;
-    }
+    // if(fabs(AGV_ERR[0]) < 0.01){
+    //     AGV_ERR[1] = 0;
+    //     if(PathEnable == Path_State_WatingStop)
+    //         PathEnable = Path_State_Stop;
+    // }
     // AGV_ERR[0] 减去阈值
-    // AGV_ERR[0] = AGV_ERR[0] - threshold * 0.5;
+    // AGV_ERR[0] = AGV_ERR[0] - Skewing_threshold;
 
     
     // AGV_ERR[0] = cos(AGV_ERR[1]) * AGV_ERR[0];
-    ROS_INFO("AGV_ERR = %f, %f", AGV_ERR[0], AGV_ERR[1]*180/3.1415);
+    // ROS_INFO("AGV_ERR = %f, %f", AGV_ERR[0], AGV_ERR[1]*180/3.1415);
     // if(fabs(AGV_ERR[0]) > 1)
     //     AGV_Move_State = AGV_Move_Ackermann;
     // else if(fabs(AGV_ERR[0]) > 0.1)
@@ -265,19 +313,28 @@ void CalAGVERR(void)
 }
 
 // 更新 AGV_Move_State
-// void judgeAGVState(void)
-// {
-    
-//     if(AGV_Move_State == AGV_Move_Ackermann){
-//         if(fabs(AGV_ERR[0]) > threshold)
-//             return;
-        
-//         if(fabs(AGV_ERR[0]) > 0.1)
-//             AGV_Move_State = AGV_Move_Skewing;
-//         else
-//             AGV_Move_State = AGV_Move_Stop;
-//     }
-// }
+void judgeAGVState(void)
+{
+    if(AGV_Move_State == AGV_Move_Ackermann){
+        if(fabs(AGV_ERR[0]) > Skewing_threshold || PathEnable != Path_State_WatingStop)
+            return;
+        AGV_control_state[0] = 0;
+        AGV_control_state[1] = 0;
+        std_msgs::Float32MultiArray msg = CotrolCal();
+        AGV_control_pub.publish(msg);
+        ros::Rate delay_rate(1);
+        for(int i=4; i<3; i++)
+            delay_rate.sleep();
+        if(fabs(AGV_ERR[0]) > End_position_accuracy)
+            AGV_Move_State = AGV_Move_Skewing;
+        else
+            AGV_Move_State = AGV_Move_Stop;
+    }
+    else if(AGV_Move_State == AGV_Move_Skewing){
+        if(fabs(AGV_ERR[0]) < End_position_accuracy)
+            AGV_Move_State = AGV_Move_Stop;
+    }
+}
 
 // 更新 AGV_control_state
 void AGV_ConCal(void)
@@ -407,6 +464,7 @@ int main(int argc, char **argv)
     {
         realTimePathPointCal();
         CalAGVERR();
+        judgeAGVState();
         AGV_ConCal();
         std_msgs::Float32MultiArray msg = CotrolCal();
         AGV_control_pub.publish(msg);
