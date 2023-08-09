@@ -33,6 +33,10 @@ double AGV_states[3] = {10000, 10000, 0};
 double AGV_control_state[2] = {0, 0};
 // 设置路径点
 double Path[100][2] = { 0.0,  0.0,
+                    //     0.0,  0.0,
+                    //     -3.0, -3.0, 
+                    //    -5.0, -4.0,
+                    //     0.0,  0.0,
                         0.0671353, 0.509237,
                         -0.0183819, 1.74058,
                         0.284655, 4.15835,
@@ -82,7 +86,7 @@ double Path[100][2] = { 0.0,  0.0,
                        -3.0, -3.0,
                         0.0,  0.0}; 
 // 路径点数
-int PathNum = 30;
+int PathNum = 10;
 
 // 路径速度
 double PathSpeed = 0.3;
@@ -213,7 +217,7 @@ void realTimePathPointCal(void)
             PathEnable = Path_State_WatingStop;
         }
     }
-    ROS_INFO("realTimePathPoint = %f, %f", realTimePathPoint[0], realTimePathPoint[1]);
+    // ROS_INFO("realTimePathPoint = %f, %f", realTimePathPoint[0], realTimePathPoint[1]);
 }
 
 // AGV控制帧计算
@@ -221,7 +225,7 @@ std_msgs::Float32MultiArray CotrolCal(void)
 {
     std_msgs::Float32MultiArray msg;
     double speed_left,speed_right;
-    double dir_left,dir_right;
+    double dir_leftFront,dir_rightFront,dir_leftBack,dir_rightBack;
     double dir = AGV_control_state[1];
     double speed = AGV_control_state[0]; 
     if(AGV_Move_State == AGV_Move_Ackermann){ 
@@ -229,48 +233,54 @@ std_msgs::Float32MultiArray CotrolCal(void)
             double T = 245/tan(dir);
             speed_left  = (T-235)/T * speed;
             speed_right = (T+235)/T * speed;
-            dir_left    = atan2(245,T-235);
-            dir_right   = atan2(245,T+235);
+            dir_leftFront    = atan2(245,T-235);
+            dir_rightFront   = atan2(245,T+235);
+            dir_leftBack    = -atan2(245,T-235);
+            dir_rightBack   = -atan2(245,T+235);
         }
         else if(dir<0){
             double T = 245/tan(-dir);
             speed_left  = (T+235)/T * speed;
             speed_right = (T-235)/T * speed;
-            dir_left    = -atan2(245,T+235);
-            dir_right   = -atan2(245,T-235);
+            dir_leftFront    = -atan2(245,T+235);
+            dir_rightFront   = -atan2(245,T-235);
+            dir_leftBack    = atan2(245,T+235);
+            dir_rightBack   = atan2(245,T-235);
         }
         else{
             speed_left  = speed;
             speed_right = speed;
-            dir_right   = 0;
-            dir_left    = 0;
+            dir_rightFront = dir_rightBack   = 0;
+            dir_leftFront = dir_leftBack   = 0;
         }
+        
     }
     else if(AGV_Move_State == AGV_Move_Skewing){
         speed_left = speed_right = speed;
-        dir_left   = dir_right   = dir;
+        dir_leftFront = dir_leftBack   = dir_rightFront = dir_rightBack   = dir;
     }
     else{
         speed_left = speed_right = 0;
-        dir_left   = dir_right   = 0;
+        dir_leftFront = dir_leftBack   = dir_rightFront = dir_rightBack   = 0;
     }
     if(HubMotor_Enable == false || PathEnable == Path_State_Stop){
         speed_left  = 0;
         speed_right = 0;
     }
     if(TurnMotor_Enable == false || PathEnable == Path_State_Stop){
-        dir_right   = 0;
-        dir_left    = 0;
+        dir_rightFront = dir_rightBack   = 0;
+        dir_leftFront = dir_leftBack    = 0;
     }
     msg.data.push_back(Speed);
     msg.data.push_back(speed_left);
     msg.data.push_back(speed_left);
     msg.data.push_back(speed_left);
     msg.data.push_back(speed_right);
-    msg.data.push_back(dir_left);
-    msg.data.push_back(-dir_left);
-    msg.data.push_back(dir_right);
-    msg.data.push_back(-dir_right);
+    msg.data.push_back(dir_leftFront);
+    msg.data.push_back(dir_leftBack);
+    msg.data.push_back(dir_rightFront);
+    msg.data.push_back(dir_rightBack);
+    
     return msg;
 }
 
@@ -470,6 +480,7 @@ int main(int argc, char **argv)
         AGV_control_pub.publish(msg);
         ROS_INFO("当前位置为: %f, %f, %f", AGV_states[0], AGV_states[1], AGV_states[2]*180/3.1415);
         ROS_INFO("目标位置为: %f, %f", realTimePathPoint[0], realTimePathPoint[1]);
+        ROS_INFO("控制模式为: %d, %d", AGV_Move_State, PathEnable);
         ROS_INFO("control speed is: %f, angular is %f", AGV_control_state[0],AGV_control_state[1]*180/3.1415);
         ros::spinOnce();
         loop_rate.sleep();
