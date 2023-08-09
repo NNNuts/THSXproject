@@ -20,6 +20,10 @@
 #include <iostream>
 #include <Eigen/Dense>
 
+// 读取按键
+#include <linux/input.h>
+#include <fstream>
+
 
 
 #define msleep(ms)  usleep((ms)*1000)
@@ -55,6 +59,82 @@ void trackRunning(void)
     }
 }
 
+/*  
+ *作用: 找到键盘设备对应的事件文件  例如 event7
+ *     linux 插入键盘设备，每一个设备会有一个事件编号,但是目前这个ls -l排序是按照设备名称排，所以
+ *     最上面的键盘设备并不会是最新的设备,因此 此函数在键盘设备多的时候 会获取一个不确定的键盘事件文件
+        usb-026d_0002-event-if01 -> ../event12
+        usb-026d_0002-event-kbd -> ../event6
+        usb-413c_Dell_KB216_Wired_Keyboard-event-if01 -> ../event14
+        usb-413c_Dell_KB216_Wired_Keyboard-event-kbd -> ../event13     这是最新的键盘设备,但是没有排到最上面
+        usb-Logitech_USB_Receiver-if01-event-mouse -> ../event2
+        usb-Logitech_USB_Receiver-if01-mouse -> ../mouse0
+        usb-SONiX_USB_Keyboard-event-if01 -> ../event4
+        usb-SONiX_USB_Keyboard-event-kbd -> ../event3
+ */
+ 
+string FindKdbEvet()
+{
+    FILE *stream;
+    FILE *wstream;
+    char buf[20];
+    memset( buf, '\0', sizeof(buf) );//初始化buf,以免后面写如乱码到文件中
+    //将命令的输出 通过管道读取（“r”参数）到FILE* stream
+    stream = popen("cd /dev/input/by-id ; ls -l | grep \"kbd\" | head -1 | cut -d \"/\" -f 2", "r"); 
+    fread( buf, sizeof(char), sizeof(buf), stream); //将刚刚FILE* stream的数据流读取到buf中
+    pclose(stream);
+    string str = buf;
+    // cout<<"str = "<<str<<endl;
+    return str;
+}
+  
+/*  
+ *作用: 打开事件文件  
+ *输入：  _infile 对应的文件流变量
+ *返回值: int 返回0 为打开成功  返回-1 为打开失败
+ */
+int OpenEventFile(ifstream & _infile)
+{
+    string kdbevet = FindKdbEvet();   //获取键盘事件例如 event7 
+    int isize = kdbevet.size();
+    if(isize > 0 && kdbevet[isize-1]) //这里需要去除结尾的换行符号 ascii码是10
+    {
+        kdbevet = kdbevet.substr(0,kdbevet.size()-1); 
+    }
+    string shCommand = "/dev/input/" + kdbevet;
+ 
+    _infile.open(shCommand.c_str(),ios_base::in);
+    if(!_infile.is_open())
+    {
+        cout <<"open Keyboard device error, error code = <<" << errno << "!" <<endl;
+        return -1;
+    }
+    return 0;
+}
+ 
+ 
+ 
+
+float Data[20] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+int key[20] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+enum
+{
+    Q,
+    A,
+    W,
+    S,
+    E,
+    D,
+    R,
+    F,
+    T,
+    G,
+    Y,
+    H,
+    Space,
+    Z,
+    C
+};
 
 
 int main(int argc, char* argv[])
@@ -64,6 +144,9 @@ int main(int argc, char* argv[])
 
     rob.canInit();
 
+    // ifstream infile;
+    
+    
     
     // VCI_CAN_OBJ rec[3000];
     // cout<<VCI_Receive(VCI_USBCAN2,0,0,rec,3000,100)<<endl;
@@ -76,29 +159,55 @@ int main(int argc, char* argv[])
 
 
     //-------------------------
+    // cout<<rob.motorReadWarning(4)<<endl;
+
     // rob.robotSetPosition(1,rob.deg2rad(0));
-    // rob.robotSetPosition(2,rob.deg2rad(-0));
+    // rob.robotSetPosition(2,rob.deg2rad(0));
     // rob.robotSetPosition(3,rob.deg2rad(0));
-    // rob.robotSetPosition(4,rob.deg2rad(-90));
+    // rob.robotSetPosition(4,rob.deg2rad(0));
     // rob.robotSetPosition(5,rob.deg2rad(0));
     // rob.robotSetPosition(6,rob.deg2rad(0));
-
-    // cout<<rob.robotReadPosition(4)<<endl;
-    rob.robotSetPosition(4,rob.deg2rad(0));
-    // for(int i=0;i<100;i++)
+    // while(true)
     // {
-    //     rob.robotSetPosition(5,rob.deg2rad(-90));
-    //     usleep(5000000);
-    //     cout<<"setPosition "<< -90 <<endl;
-    //     cout<<rob.robotReadPosition(5)<<endl<<endl;
+    // //     rob.robotSetPosition(1,rob.deg2rad(5));
+    // //     rob.robotSetPosition(2,rob.deg2rad(-5));
+    // //     rob.robotSetPosition(3,rob.deg2rad(5));
+    //     rob.robotSetPosition(4,rob.deg2rad(-5));
+    // //     rob.robotSetPosition(5,rob.deg2rad(5));
+    // //     rob.robotSetPosition(6,rob.deg2rad(5));
+    //     usleep(1000000);
+    //     rob.robotReadPositionAll(TC.theta_now);
+    //     cout << TC.theta_now[0] << " " << TC.theta_now[1] << " " << TC.theta_now[2] << " " << TC.theta_now[3] << " " << TC.theta_now[4] << " " << TC.theta_now[5] << " " << endl;
+    //     for(int i = 0;i < 6;i++)
+    //     {
+    //         if(TC.theta_now[i] > 10 || TC.theta_now[i] < -10)
+    //         {
+    //             cout<< i+1 << "号电机通讯失败" << endl;
+    //             // exit(0);
+    //         }
+    //     }
 
-    //     rob.robotSetPosition(5,rob.deg2rad(90));
-    //     usleep(5000000);
-    //     cout<<"setPosition "<< 90 <<endl;
-    //     cout<<rob.robotReadPosition(5)<<endl<<endl;
+    // //     rob.robotSetPosition(1,rob.deg2rad(0));
+    // //     rob.robotSetPosition(2,rob.deg2rad(-0));
+    // //     rob.robotSetPosition(3,rob.deg2rad(0));
+    //     rob.robotSetPosition(4,rob.deg2rad(-0));
+    // //     rob.robotSetPosition(5,rob.deg2rad(0));
+    // //     rob.robotSetPosition(6,rob.deg2rad(0));
+    //     usleep(1000000);
+    //     rob.robotReadPositionAll(TC.theta_now);
+    //     cout << TC.theta_now[0] << " " << TC.theta_now[1] << " " << TC.theta_now[2] << " " << TC.theta_now[3] << " " << TC.theta_now[4] << " " << TC.theta_now[5] << " " << endl;
+    //     for(int i = 0;i < 6;i++)
+    //     {
+    //         if(TC.theta_now[i] > 10 || TC.theta_now[i] < -10)
+    //         {
+    //             cout<< i+1 << "号电机通讯失败" << endl;
+    //             // exit(0);
+    //         }
+    //     }
     // }
 
-    exit(0);
+
+    // exit(0);
     //-------------------------
 
 
@@ -136,20 +245,6 @@ int main(int argc, char* argv[])
     // exit(0);
     msleep(5000);
     rob.robotReadPositionAll(TC.theta_now);
-
-    // rob.canSend(rob.Can, 0x605, 8, 0x237A600000000000 + rob.num2Hex(-10000));
-    // cout<<"-10000"<<endl;
-    // rob.canSend(rob.Can, 0x600 + 5, 8, 0x2B4060002F000000);
-    // rob.canSend(rob.Can, 0x600 + 5, 8, 0x2B4060003F000000);
-    // msleep(5000);
-    // rob.robotReadPositionAll(TC.theta_now);
-    // rob.canSend(rob.Can, 0x605, 8, 0x237A600000000000 + rob.num2Hex(10000));
-    // cout<<"10000"<<endl;
-    // rob.canSend(rob.Can, 0x600 + 5, 8, 0x2B4060002F000000);
-    // rob.canSend(rob.Can, 0x600 + 5, 8, 0x2B4060003F000000);
-    // msleep(5000);
-    // rob.robotReadPositionAll(TC.theta_now);
-    // exit(0);
 
     
     Matrix4d mat = TC.kinematics(TC.theta_now);
@@ -267,144 +362,144 @@ void MoveJ(double X, double Y, double Z, double RX, double RY, double RZ, double
     usleep(delay_s * 1000000);
 }
 
-void KeyBoardControl(double X, double Y, double Z, double RX, double RY, double RZ)
+void KeyBoardControl(double x, double y, double z, double RX, double RY, double RZ)
 {
     // MoveL(X, Y, Z, RX, RY, RZ, 3);
-    char ch;
-    MoveJ(X, Y, Z, RX, RY, RZ, 2);
-    // double parameter[6] = {X, Y, Z, rob.deg2rad(RX), rob.deg2rad(RY), rob.deg2rad(RZ)};
-
-    // double Joint[6];
-    // Tar.Pose_ComputerAndJudge_MoveJ(parameter,TC.theta_now, Joint);
-    // Matrix4d mat = TC.kinematics(Joint);
-    // Matrix4d mat = TC.kinematics(TC.theta_now);
-    // rob.robotSetPositionAll(TC.theta_now);
+    // char ch;
+    MoveJ(x, y, z, RX, RY, RZ, 2);
     
-    // Rpy rpy= TC.Matrix2Rpy(mat.block<3,3>(0,0));
-    // cout<<rpy<<endl;
-
-    // Rpy input(rob.deg2rad(RX), rob.deg2rad(RY), rob.deg2rad(RZ));
-    // Matrix3d mat3d = TC.Rpy2Matrix(input);
-    // rpy= TC.Matrix2Rpy(mat3d);
-    // cout<<rpy<<endl;
-
-    // exit(0);
-    // if(Joint[0] == 10000)
-    // {
-    //     cout << "当前位置不可达"  << endl;
-    // }
-    
-    // TC.theta_now[0] = Joint[0];
-    // TC.theta_now[1] = Joint[1];
-    // TC.theta_now[2] = Joint[2];
-    // TC.theta_now[3] = Joint[3];
-    // TC.theta_now[4] = Joint[4];
-    // TC.theta_now[5] = Joint[5];
-    // rob.robotSetPositionAll(TC.theta_now);
     int XYZSpeed = 10;
-    Matrix4d mat;
-    Rpy rpy;
+    // Matrix4d mat;
+    // Rpy rpy;
     double num[6];
+    struct input_event t;  
+    ifstream infile;
+    if(OpenEventFile(infile) == -1)
+    {
+        cout << "OpenEventFile error" << endl;
+        exit(0);
+    }
+
     while(true)
     {
-        ch = getch();
-        switch (ch)
-        {
-        case 'q':
-            X += XYZSpeed;
-            break;
-
-        case 'a':
-            X -= XYZSpeed;
-            break;
-
-        case 'w':
-            Y += XYZSpeed;
-            break;
-
-        case 's':
-            Y -= XYZSpeed;
-            break;   
-
-        case 'e':
-            Z += XYZSpeed;
-            break;
-
-        case 'd':
-            Z -= XYZSpeed;
-            break;  
-
-        case 'r':
-            RX += 3;
-            break;
-
-        case 'f':
-            RX -= 3;
-            break;
-
-        case 't':
-            RY += 3;
-            break;
-
-        case 'g':
-            RY -= 3;
-            break;   
-
-        case 'y':
-            RZ += 3;
-            break;
-
-        case 'h':
-            RZ -= 3;
-            break;
-        
-        case 'z':
-            XYZSpeed += 1;
-            if(XYZSpeed>10)
-            {
-                XYZSpeed = 10;
-            }
-            break;
-        
-        case 'c':
-            XYZSpeed -= 1;
-            if(XYZSpeed<1)
-            {
-                XYZSpeed = 1;
-            }
-            break;
-
-        case ' ':
-            rob.robotReadPositionAll(num);
-            // TC.theta_now[0] = 0;
-            cout<<endl;
-            cout << num[0] << " " << num[1] << " " << num[2] << " " << num[3] << " " << num[4] << " " << num[5] << " " << endl;
-            for(int i = 0;i < 6;i++)
-            {
-                if(num[i] > 10 || num[i] < -10)
-                {
-                    cout<< i+1 << "号电机通讯失败" << endl;
-                    // exit(0);
+        if(infile.read((char *)&t,sizeof(t))){
+            if(t.type == EV_KEY){
+                // cout<<"key "<<t.code<<" "<<t.value<<endl;
+                if(t.code == KEY_W){
+                    if(t.value == 1)
+                        key[W] = 1;
+                    else if(t.value == 0)
+                        key[W] = 0;
                 }
-            }
-            cout <<  X << " " << Y << " " << Z << " " << RX << " " << RY << " " << RZ << " " << endl;
-            cout << TC.theta_now[0] << " " << TC.theta_now[1] << " " << TC.theta_now[2] << " " << TC.theta_now[3] << " " << TC.theta_now[4] << " " << TC.theta_now[5] << " " << endl;
+                else if(t.code == KEY_A){
+                    if(t.value == 1)
+                        key[A] = 1;
+                    else if(t.value == 0)
+                        key[A] = 0;
+                }
+                else if(t.code == KEY_S){
+                    if(t.value == 1)
+                        key[S] = 1;
+                    else if(t.value == 0)
+                        key[S] = 0;
+                }
+                else if(t.code == KEY_D){
+                    if(t.value == 1)
+                        key[D] = 1;
+                    else if(t.value == 0)
+                        key[D] = 0;
+                }
+                else if(t.code == KEY_SPACE){
+                    if(t.value == 1)
+                        key[Space] = 1;
+                    else if(t.value == 0)
+                        key[Space] = 0;
+                }
+                else if(t.code == KEY_R){
+                    if(t.value == 1)
+                        key[R] = 1;
+                    else if(t.value == 0)
+                        key[R] = 0;
+                }
+                else if(t.code == KEY_Z){
+                    if(t.value == 1)
+                        key[Z] = 1;
+                    else if(t.value == 0)
+                        key[Z] = 0;
+                }
+                else if(t.code == KEY_C){
+                    if(t.value == 1)
+                        key[C] = 1;
+                    else if(t.value == 0)
+                        key[C] = 0;
+                }
+            
+                if(key[Q] == 1){
+                    x += XYZSpeed;
+                }
+                else if (key[A] == 1){
+                    x -= XYZSpeed;
+                }if(key[W] == 1){
+                    y += XYZSpeed;
+                }
+                else if (key[S] == 1){
+                    y -= XYZSpeed;
+                }
+                if(key[E] == 1){
+                    z += XYZSpeed;
+                }
+                else if (key[D] == 1){
+                    z -= XYZSpeed;
+                }
+                if(key[R] == 1){
+                    RX += 3;
+                }
+                else if (key[F] == 1){
+                    RX -= 3;
+                }
+                if(key[T] == 1){
+                    RY += 3;
+                }
+                else if (key[G] == 1){
+                    RY -= 3;
+                }
+                if(key[Y] == 1){
+                    RZ += 3;
+                }
+                else if (key[H] == 1){
+                    RZ -= 3;
+                }
+                if(key[Z] == 1){
+                    XYZSpeed += 1;
+                    if(XYZSpeed>10){
+                        XYZSpeed = 10;
+                    }
+                }
+                else if (key[C] == 1){
+                    XYZSpeed -= 1;
+                    if(XYZSpeed<1){
+                        XYZSpeed = 1;
+                    }
+                }
+                if(key[Space] == 1){
+                    rob.robotReadPositionAll(num);
+                    // TC.theta_now[0] = 0;
+                    cout << endl;
+                    cout << num[0] << " " << num[1] << " " << num[2] << " " << num[3] << " " << num[4] << " " << num[5] << " " << endl;
+                    for(int i = 0;i < 6;i++){
+                        if(num[i] > 10 || num[i] < -10){
+                            cout<< i+1 << "号电机通讯失败" << endl;
+                            // exit(0);
+                        }
+                    }
+                    cout <<  x << " " << y << " " << z << " " << RX << " " << RY << " " << RZ << " " << endl;
+                    cout << TC.theta_now[0] << " " << TC.theta_now[1] << " " << TC.theta_now[2] << " " << TC.theta_now[3] << " " << TC.theta_now[4] << " " << TC.theta_now[5] << " " << endl;
 
-            // mat = TC.kinematics(TC.theta_now);
-            // cout << mat << endl;
-            // rpy = TC.Matrix2Rpy(mat.block<3, 3>(0, 0));
-            // cout << rpy << endl << endl;
-            break;
-        
-        case 'x':
-            rob.robotReset();
-            rob.robotInit();
-            break;
-        
-        default:
-            break;
+                }
+            }    
         }
-        double parameter[6] = {X, Y, Z, rob.deg2rad(RX), rob.deg2rad(RY), rob.deg2rad(RZ)};
+        
+        double parameter[6] = {x, y, z, rob.deg2rad(RX), rob.deg2rad(RY), rob.deg2rad(RZ)};
 
         double Joint[6];
         Tar.Pose_ComputerAndJudge_MoveJ(parameter,TC.theta_now, Joint);
@@ -428,28 +523,28 @@ void KeyBoardControl(double X, double Y, double Z, double RX, double RY, double 
     }
 }
 
-char getch()
-{
-    char buf = 0;
-    struct termios old = {0};
-    if(tcgetattr(0,&old) < 0){perror("tcgetattr error");}
-    old.c_lflag &= ~ICANON;
-    old.c_lflag &= ~ECHO;
-    old.c_cc[VMIN] = 0;
-    old.c_cc[VTIME] = 0;
-    if(tcsetattr(0,TCSANOW,&old)<0){
-        perror("tcsetattr error");
-    }    
-    if(read(0,&buf,1)<0){
-        perror("read error");
-    }
+// char getch()
+// {
+//     char buf = 0;
+//     struct termios old = {0};
+//     if(tcgetattr(0,&old) < 0){perror("tcgetattr error");}
+//     old.c_lflag &= ~ICANON;
+//     old.c_lflag &= ~ECHO;
+//     old.c_cc[VMIN] = 0;
+//     old.c_cc[VTIME] = 0;
+//     if(tcsetattr(0,TCSANOW,&old)<0){
+//         perror("tcsetattr error");
+//     }    
+//     if(read(0,&buf,1)<0){
+//         perror("read error");
+//     }
     
-    old.c_lflag |= ICANON;
-    old.c_lflag |= ECHO;
+//     old.c_lflag |= ICANON;
+//     old.c_lflag |= ECHO;
     
-    if(tcsetattr(0,TCSADRAIN,&old)<0)
-    {
-        perror("tcsetattr error2");
-    }
-    return (buf);
-}
+//     if(tcsetattr(0,TCSADRAIN,&old)<0)
+//     {
+//         perror("tcsetattr error2");
+//     }
+//     return (buf);
+// }

@@ -40,15 +40,15 @@ extern TrainComputer TC;
 class CAN2USB : public socketCAN                                  
 {
 private:
-    double motorBias[6] = {-9.0/180*EIGEN_PI, 104.0/180*EIGEN_PI, -2.0/180*EIGEN_PI, 0.0/180*EIGEN_PI, 0/180*EIGEN_PI, 0};
+    double motorBias[6] = {-9.0/180*EIGEN_PI, 173.0/180*EIGEN_PI, -0.5/180*EIGEN_PI, -26.5/180*EIGEN_PI, -36./180*EIGEN_PI, 0};
     // double motorBias[6] = {-9.0/180*EIGEN_PI, 104.0/180*EIGEN_PI, -2.0/180*EIGEN_PI, 63.0/180*EIGEN_PI, 145.5/180*EIGEN_PI, 0};
     double motorDir[6] = {1, 1, -1, 1, 1, 1};
     double jointsLimit[6][2] = {-180./180*EIGEN_PI, 180./180*EIGEN_PI, 
-                                -210./180*EIGEN_PI,  30./180*EIGEN_PI,
-                                -150./180*EIGEN_PI, 150./180*EIGEN_PI,
-                                -210./180*EIGEN_PI,  30./180*EIGEN_PI,
+                                -180./180*EIGEN_PI,  0./180*EIGEN_PI,
                                 -180./180*EIGEN_PI, 180./180*EIGEN_PI,
-                                -180./180*EIGEN_PI, 180./180*EIGEN_PI,};
+                                -180./180*EIGEN_PI,  30./180*EIGEN_PI,
+                                -180./180*EIGEN_PI, 180./180*EIGEN_PI,
+                                -180./180*EIGEN_PI, 180./180*EIGEN_PI};
     // double motorThreshold = {-10,};
     
     // int isOpen = false;
@@ -147,21 +147,15 @@ public:
         // clearCanData();
 
         canSend(Can, 0x600 + ID, 8, 0x237A600000000000 + rad2Hex(position));
-        // cout<<"send "<<rad2Hex(position)<<endl;
-        // sendAck(ID,0x237A600000000000);
         canSend(Can, 0x600 + ID, 8, 0x2B4060002F000000);
-        // sendAck(ID,0x2B4060002F000000);
         canSend(Can, 0x600 + ID, 8, 0x2B4060003F000000);
-        // sendAck(ID,0x2B4060003F000000);
+        // cout<<"send "<<rad2Hex(position)<<endl;
 
-        // setCommond(0x600 + ID, 8, 0x237A600000000000 + rad2Hex(position));
-        // sendCommond();
+        // canSend(Can, 0x600 + ID, 8, 0x2B4060002F000000);
 
-        // setCommond(0x600 + ID, 8, 0x2B4060002F000000);
-        // sendCommond();
+        // canSend(Can, 0x600 + ID, 8, 0x2B4060003F000000);
 
-        // setCommond(0x600 + ID, 8, 0x2B4060003F000000);
-        // sendCommond();
+
     }
 
     void changeMotorID(int ID, int newID)
@@ -189,11 +183,7 @@ public:
         // VCI_CAN_OBJ rec[100];
         // clearCanData();
         canClean(Can);
-        // setCommond(0x600 + ID, 8, 0x4064600000000000);
-        // sendCommond();
         canSend(Can, 0x600 + ID, 8, 0x4064600000000000);
-        // int Len = canRead(rec);
-        // cout<<"Len "<<Len<<endl;
         if(CanReadDataNum[Can])
         {
             // cout<<"Len "<<CanReadDataNum[Can]<<endl;
@@ -204,11 +194,37 @@ public:
                 {
                     // cout<<"ReadCheck "<<ID<<endl;
                     double position = CanReadData[Can][i].data[7] * 256 * 256 * 256 + CanReadData[Can][i].data[6] * 256 * 256 + CanReadData[Can][i].data[5] * 256 + CanReadData[Can][i].data[4];
-                    cout<<"position "<<position<<endl;
+                    // cout<<"position "<<position<<endl;
                     if(position > 0x80000000)
                         position = position - 0x100000000;
                     CanReadDataNum[Can] = 0;
                     return position / 100 / 16384 * EIGEN_PI;
+                }
+            }
+        }
+        CanReadDataNum[Can] = 0;
+        return 10000;
+    }
+
+    double motorReadWarning(int ID)
+    {
+        // VCI_CAN_OBJ rec[100];
+        // clearCanData();
+        canClean(Can);
+        canSend(Can, 0x600 + ID, 8, 0x400A300000000000);
+        if(CanReadDataNum[Can])
+        {
+            // cout<<"Len "<<CanReadDataNum[Can]<<endl;
+            for(int i=0;i<CanReadDataNum[Can];i++)
+            {
+                // cout<<"Read ID "<<CanReadData[Can][i].can_id<<endl;
+                if(ackCheck(ID,0x400A300000000000,CanReadData[Can][i]))
+                {
+                    // cout<<"ReadCheck "<<ID<<endl;
+                    double err = CanReadData[Can][i].data[5] * 256 + CanReadData[Can][i].data[4];
+                    // cout<<"err "<<err<<endl;
+                    CanReadDataNum[Can] = 0;
+                    return err;
                 }
             }
         }
@@ -348,63 +364,31 @@ public:
     void motorSetPositionAll(double joint1,double joint2,double joint3,double joint4,double joint5,double joint6)
     {
         // clearCanData();
-        motorSetPosition(1,joint1);
-        motorSetPosition(2,joint2);
-        motorSetPosition(3,joint3);
-        motorSetPosition(4,joint4);
-        motorSetPosition(5,joint5);
-        motorSetPosition(6,joint6);
-        // canSend(Can, 0x601, 8, 0x237A600000000000 + rad2Hex(joint1));
-        // sendAck(1,0x237A600000000000);
-        // canSend(Can, 0x602, 8, 0x237A600000000000 + rad2Hex(joint2));
-        // canSend(Can, 0x603, 8, 0x237A600000000000 + rad2Hex(joint3));
-        // canSend(Can, 0x604, 8, 0x237A600000000000 + rad2Hex(joint4));
-        // canSend(Can, 0x605, 8, 0x237A600000000000 + rad2Hex(joint5));
-        // canSend(Can, 0x606, 8, 0x237A600000000000 + rad2Hex(joint6));
-        // setCommond(0x601, 8, 0x237A600000000000 + rad2Hex(joint1));
-        // sendCommond();
-        // setCommond(0x602, 8, 0x237A600000000000 + rad2Hex(joint2));
-        // sendCommond();
-        // setCommond(0x603, 8, 0x237A600000000000 + rad2Hex(joint3));
-        // sendCommond();
-        // setCommond(0x604, 8, 0x237A600000000000 + rad2Hex(joint4));
-        // sendCommond();
-        // setCommond(0x605, 8, 0x237A600000000000 + rad2Hex(joint5));
-        // sendCommond();
-        // setCommond(0x606, 8, 0x237A600000000000 + rad2Hex(joint6));
-        // sendCommond();
-
-        // for(int ID = 1; ID <=6; ID++){
-        //     canSend(Can, 0x600 + ID, 8, 0x2B4060002F000000);
-        //     canSend(Can, 0x600 + ID, 8, 0x2B4060003F000000);
-        // }
-
-
-        // setCommond(0x601, 8, 0x2B4060002F000000);
-        // sendCommond();
-        // setCommond(0x602, 8, 0x2B4060002F000000);
-        // sendCommond();
-        // setCommond(0x603, 8, 0x2B4060002F000000);
-        // sendCommond();
-        // setCommond(0x604, 8, 0x2B4060002F000000);
-        // sendCommond();
-        // setCommond(0x605, 8, 0x2B4060002F000000);
-        // sendCommond();
-        // setCommond(0x606, 8, 0x2B4060002F000000);
-        // sendCommond();
-
-        // setCommond(0x601, 8, 0x2B4060003F000000);
-        // sendCommond();
-        // setCommond(0x602, 8, 0x2B4060003F000000);
-        // sendCommond();
-        // setCommond(0x603, 8, 0x2B4060003F000000);
-        // sendCommond();
-        // setCommond(0x604, 8, 0x2B4060003F000000);
-        // sendCommond();
-        // setCommond(0x605, 8, 0x2B4060003F000000);
-        // sendCommond();
-        // setCommond(0x606, 8, 0x2B4060003F000000);
-        // sendCommond();
+        // motorSetPosition(1,joint1);
+        // motorSetPosition(2,joint2);
+        // motorSetPosition(3,joint3);
+        // motorSetPosition(4,joint4);
+        // motorSetPosition(5,joint5);
+        // motorSetPosition(6,joint6);
+        
+        canSend(Can, 0x600 + 1, 8, 0x237A600000000000 + rad2Hex(joint1));
+        canSend(Can, 0x600 + 2, 8, 0x237A600000000000 + rad2Hex(joint2));
+        canSend(Can, 0x600 + 3, 8, 0x237A600000000000 + rad2Hex(joint3));
+        canSend(Can, 0x600 + 4, 8, 0x237A600000000000 + rad2Hex(joint4));
+        canSend(Can, 0x600 + 5, 8, 0x237A600000000000 + rad2Hex(joint5));
+        canSend(Can, 0x600 + 6, 8, 0x237A600000000000 + rad2Hex(joint6));
+        canSend(Can, 0x600 + 1, 8, 0x2B4060002F000000);
+        canSend(Can, 0x600 + 2, 8, 0x2B4060002F000000);
+        canSend(Can, 0x600 + 3, 8, 0x2B4060002F000000);
+        canSend(Can, 0x600 + 4, 8, 0x2B4060002F000000);
+        canSend(Can, 0x600 + 5, 8, 0x2B4060002F000000);
+        canSend(Can, 0x600 + 6, 8, 0x2B4060002F000000);
+        canSend(Can, 0x600 + 1, 8, 0x2B4060003F000000);
+        canSend(Can, 0x600 + 2, 8, 0x2B4060003F000000);
+        canSend(Can, 0x600 + 3, 8, 0x2B4060003F000000);
+        canSend(Can, 0x600 + 4, 8, 0x2B4060003F000000);
+        canSend(Can, 0x600 + 5, 8, 0x2B4060003F000000);
+        canSend(Can, 0x600 + 6, 8, 0x2B4060003F000000);
     }
 
     long rad2Hex(double rad)
@@ -445,6 +429,7 @@ public:
     void robotSetPosition(int ID, double rad)
     {
         double position = rad*motorDir[ID - 1] + motorBias[ID - 1];
+        checkJointLimit(ID, position);
         motorSetPosition(ID,position);
     }
 
@@ -461,10 +446,9 @@ public:
 
     void robotSetPositionAll(double rad[6])
     {
-        // checkJointLimit(rad);
         if(robotIsSelfCollide(rad))
         {
-            cout<<"发生碰撞"<<endl;
+            cout<<"发生碰撞 "<<robotIsSelfCollide(rad)<<endl;
             exit(0);
         }
         double position[6] = {rad[0], rad[1], rad[2], rad[3], rad[4],rad[5]};
@@ -496,20 +480,30 @@ public:
         *res = rad[5];res++;
     }
 
-    void checkJointLimit(double joints[6])
+    void checkJointLimit(int ID, double joint)
     {
-        for(int i=0;i<6;i++)
+        // for(int i=0;i<6;i++)
+        // {
+        //     if(joints[i]<jointsLimit[i][0])
+        //     {
+        //         cout<<"joint"<<i<<" "<<joints[i]<<" too small"<<endl;
+        //         exit(0);
+        //     }
+        //     if(joints[i]>jointsLimit[i][1])
+        //     {
+        //         cout<<"joint"<<i<<" "<<joints[i]<<" too big"<<endl;
+        //         exit(0);
+        //     }
+        // }
+        if(joint<jointsLimit[ID-1][0])
         {
-            if(joints[i]<jointsLimit[i][0])
-            {
-                cout<<"joint"<<i<<" "<<joints[i]<<" too small"<<endl;
-                exit(0);
-            }
-            if(joints[i]>jointsLimit[i][1])
-            {
-                cout<<"joint"<<i<<" "<<joints[i]<<" too big"<<endl;
-                exit(0);
-            }
+            cout<<"joint"<<ID<<" "<<joint<<" too small"<<endl;
+            exit(0);
+        }
+        if(joint>jointsLimit[ID-1][1])
+        {
+            cout<<"joint"<<ID<<" "<<joint<<" too big"<<endl;
+            exit(0);
         }
     }
 
@@ -532,7 +526,7 @@ public:
 
     int robotIsSelfCollide(double jointTheta[6])
     {
-        double err = 40;
+        double err = 10;
         Matrix4d T1;
         T1.setIdentity(4, 4);
         T1(2, 3) = 295.14 / 2;
