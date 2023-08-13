@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<launch>
+  <node name="Handle" pkg="joy" type="joy_node" required="true">
+  <node name="AGV_Control" pkg="HubMotor_pkg" type="HubMotor" required="true">
+  </node>
+</launch>

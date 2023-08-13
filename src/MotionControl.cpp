@@ -1,6 +1,7 @@
 #include "ros/ros.h"
 #include "nav_msgs/Odometry.h"
 #include "std_msgs/Float32MultiArray.h"
+// #include "sensor_msgs/Joy.h"
 #include <iostream>
 #include <Eigen/Dense>
 #include <signal.h>
@@ -8,24 +9,36 @@
 using namespace std;
 using namespace Eigen;
 
-enum
-{
+// AGV运动模式
+enum AGVSportsMode{
+    Maintain,
     Disability,
     Speed,
     Position
 };
-enum
-{
+
+// AGV 运动状态
+enum AGV_Move_State{
     AGV_Move_Stop,
     AGV_Move_Ackermann,
     AGV_Move_Skewing
-};
-enum
-{
+}AGV_Move_State;
+// int AGV_Move_State = AGV_Move_Stop;
+
+// 路径运行状态
+enum PathState{
     Path_State_Stop,
     Path_State_Run,
     Path_State_WatingStop
-};
+}Path_State;
+// int Path_State = Path_State_Stop;
+
+// // AGV 控制模式
+// enum{
+//     AGV_Control_Handle,
+//     AGV_Control_Path
+// };
+// int AGV_Control_mode = AGV_Control_Path;
 
 double ControlHz = 100;
 
@@ -90,11 +103,41 @@ int PathNum = 10;
 
 // 路径速度
 double PathSpeed = 0.3;
+
 // 路径时间
 double PathTime = 0;
 
-// 路径使能
-int PathEnable = false;
+// // 手柄按键信息
+// enum{
+//     A,
+//     B,
+//     unknow1,
+//     X,
+//     Y,
+//     unknow2,
+//     LT,
+//     RT,
+//     unknow3,
+//     LM,
+//     RM,
+//     unknow4,
+//     LD,
+//     RD
+// };
+// int HandleKey[15] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+// // 手柄摇杆信息
+// enum{
+//     LY,
+//     LX,
+//     RY,
+//     RX,
+//     LB,
+//     RB,
+//     KY,
+//     KX
+// };
+// double HandleRocker[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
 
 // 实时路径点
@@ -116,12 +159,12 @@ ros::Publisher AGV_control_pub;
 // 轮毂电机及转向电机使能
 int HubMotor_Enable  = true;
 int TurnMotor_Enable = true;
-int AGV_Move_State;
+
 PID SpeedPid(PID_spd[0], PID_spd[1], PID_spd[2]);
 PID DirectionPid(PID_dir[0], PID_dir[1], PID_dir[2]);
 
 // 初始化
-void init(void)
+void pathInit(void)
 {
     ros::Rate delay_rate(1000);
     ROS_INFO("等待AGV定位");
@@ -134,9 +177,18 @@ void init(void)
     AGV_Move_State = AGV_Move_Ackermann;
     // HubMotor_Enable = true;
     // TurnMotor_Enable = true;
-    PathEnable = Path_State_Run;
+    Path_State = Path_State_Run;
     PathTime = 0;
-    ROS_INFO("AGV定位成功,当前位置为: %f, %f", AGV_states[0], AGV_states[1]);
+    // ROS_INFO("AGV定位成功,当前位置为: %f, %f", AGV_states[0], AGV_states[1]);
+}
+
+// AGV 控制复位
+void AGVControlReset(int mod){
+    std_msgs::Float32MultiArray msg;
+    msg.data.push_back(mod);
+    for(int i=0;i<8;i++)
+        msg.data.push_back(0);
+    AGV_control_pub.publish(msg);
 }
 
 void MotionControlExit(int sig)
@@ -144,11 +196,7 @@ void MotionControlExit(int sig)
 	//这里进行退出前的数据保存、内存清理、告知其他节点等工作
     // rob.canClose();
 
-    std_msgs::Float32MultiArray msg;
-    msg.data.push_back(Speed);
-    for(int i=0;i<8;i++)
-        msg.data.push_back(0);
-    AGV_control_pub.publish(msg);
+    AGVControlReset(Maintain);
 	ROS_INFO("MotionControl shutting down!");
 	ros::shutdown();
     exit(0);
@@ -194,7 +242,7 @@ void LidarOdoCallback(const nav_msgs::Odometry::ConstPtr& msg){
 // 计算实时路径点
 void realTimePathPointCal(void)
 {
-    if(PathEnable == true)
+    if(Path_State == true)
         PathTime += 1.0/ControlHz;
     double PathDistance = PathSpeed * PathTime;
     for(int i=0; i<PathNum; i++){
@@ -207,14 +255,14 @@ void realTimePathPointCal(void)
             realTimePathPoint[0] = Path[i+1][0];
             realTimePathPoint[1] = Path[i+1][1];
 
-            PathEnable = Path_State_Run;
+            Path_State = Path_State_Run;
             break;
         }
         else{
             PathDistance -= sqrt((Path[i+1][1]-Path[i][1])*(Path[i+1][1]-Path[i][1])+(Path[i+1][0]-Path[i][0])*(Path[i+1][0]-Path[i][0]));
             realTimePathPoint[0] = Path[PathNum][0];
             realTimePathPoint[1] = Path[PathNum][1];
-            PathEnable = Path_State_WatingStop;
+            Path_State = Path_State_WatingStop;
         }
     }
     // ROS_INFO("realTimePathPoint = %f, %f", realTimePathPoint[0], realTimePathPoint[1]);
@@ -263,15 +311,15 @@ std_msgs::Float32MultiArray CotrolCal(void)
         speed_left = speed_right = 0;
         dir_leftFront = dir_leftBack   = dir_rightFront = dir_rightBack   = 0;
     }
-    if(HubMotor_Enable == false || PathEnable == Path_State_Stop){
+    if(HubMotor_Enable == false || Path_State == Path_State_Stop){
         speed_left  = 0;
         speed_right = 0;
     }
-    if(TurnMotor_Enable == false || PathEnable == Path_State_Stop){
+    if(TurnMotor_Enable == false || Path_State == Path_State_Stop){
         dir_rightFront = dir_rightBack   = 0;
         dir_leftFront = dir_leftBack    = 0;
     }
-    msg.data.push_back(Speed);
+    msg.data.push_back(Maintain);
     msg.data.push_back(speed_left);
     msg.data.push_back(speed_left);
     msg.data.push_back(speed_left);
@@ -301,32 +349,13 @@ void CalAGVERR(void)
     if(AGV_ERR[1] > EIGEN_PI/2 || AGV_ERR[1] < -EIGEN_PI/2)
         AGV_ERR[0] = -AGV_ERR[0];
 
-    // 距离低于3cmm时，停止修正方向
-    // if(fabs(AGV_ERR[0]) < 0.01){
-    //     AGV_ERR[1] = 0;
-    //     if(PathEnable == Path_State_WatingStop)
-    //         PathEnable = Path_State_Stop;
-    // }
-    // AGV_ERR[0] 减去阈值
-    // AGV_ERR[0] = AGV_ERR[0] - Skewing_threshold;
-
-    
-    // AGV_ERR[0] = cos(AGV_ERR[1]) * AGV_ERR[0];
-    // ROS_INFO("AGV_ERR = %f, %f", AGV_ERR[0], AGV_ERR[1]*180/3.1415);
-    // if(fabs(AGV_ERR[0]) > 1)
-    //     AGV_Move_State = AGV_Move_Ackermann;
-    // else if(fabs(AGV_ERR[0]) > 0.1)
-    //     AGV_Move_State = AGV_Move_Skewing;
-    // else
-    //     AGV_Move_State = AGV_Move_Stop;
-    // std::cout << " AGV_ERR[0] = "  << AGV_ERR[0] << std::endl;
 }
 
 // 更新 AGV_Move_State
 void judgeAGVState(void)
 {
     if(AGV_Move_State == AGV_Move_Ackermann){
-        if(fabs(AGV_ERR[0]) > Skewing_threshold || PathEnable != Path_State_WatingStop)
+        if(fabs(AGV_ERR[0]) > Skewing_threshold || Path_State != Path_State_WatingStop)
             return;
         AGV_control_state[0] = 0;
         AGV_control_state[1] = 0;
@@ -400,10 +429,8 @@ void AGV_ConCal(void)
         // AGV_control_state[1] = 0;
 
         // 抵达目标点
-        if(PathEnable == false)
-        {
-            if(fabs(AGV_ERR[0]) < 0.03)
-            {
+        if(Path_State == false){
+            if(fabs(AGV_ERR[0]) < 0.03){
                 AGV_control_state[0] = 0;
                 AGV_control_state[1] = 0;
                 return;
@@ -455,7 +482,52 @@ void AGV_ConCal(void)
     }
 }
 
+// 接收路径
+void PathResiveCallBack(std_msgs::Float32MultiArray::ConstPtr msg)
+{
+    if(Path_State == Path_State_Stop){
+        int PathNum = msg->data.at(0);
+        for(int i=0; i<PathNum; i++){
+            Path[i+1][0] = msg->data.at(2*i + 1);
+            Path[i+1][1] = msg->data.at(2*i + 2);
+        }
+        pathInit();
+    }
+}
 
+// // 接收手柄信息
+// void HandleResiveCallBack(sensor_msgs::Joy::ConstPtr msg){
+//     for(int i=0; i<15; i++){
+//         HandleKey[i] = msg->buttons.at(i);
+//     }
+//     for(int i=0; i<8; i++){
+//         HandleRocker[i] = msg->axes.at(i);
+//     }
+// }
+
+
+
+// // AGV 模式切换
+// void AGV_Mode_Switching(void){
+//     ros::Rate delay_rate(1000);
+//     if(HandleKey[RM] == 1){
+//         if(AGV_Control_mode == AGV_Control_Path){
+//             AGV_Control_mode = AGV_Control_Handle;
+//         }
+//         else if(AGV_Control_mode == AGV_Control_Handle){
+//             AGV_Control_mode = AGV_Control_Path;
+
+//         }
+//         AGVControlReset();
+//         while(true){
+//             delay_rate.sleep();
+//             if(HandleKey[RM] == 0)
+//                 break;
+//         }
+//     }
+// }
+
+// 主程序
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "MotionControl");
@@ -464,14 +536,16 @@ int main(int argc, char **argv)
     signal(SIGINT, MotionControlExit);
     AGV_control_pub = nh.advertise<std_msgs::Float32MultiArray>("AgvControl", 1000);
     ros::Subscriber LidarOdo_sub = nh.subscribe("odom", 1000, LidarOdoCallback);
+    ros::Subscriber Path_sub = nh.subscribe("path", 1000, PathResiveCallBack);
+    // ros::Subscriber Handle_sub = nh.subscribe("joy", 1000, HandleResiveCallBack);
     setlocale(LC_ALL, "");
     // ROS_INFO("Warning!");
-    ROS_INFO("运控启动");
+    // ROS_INFO("运控启动");
     ros::Rate loop_rate(ControlHz);
     char ch;
-    init();
-    while (ros::ok())
-    {
+    // pathInit();
+    AGVControlReset(Speed);
+    while (ros::ok()){
         realTimePathPointCal();
         CalAGVERR();
         judgeAGVState();
@@ -479,9 +553,12 @@ int main(int argc, char **argv)
         std_msgs::Float32MultiArray msg = CotrolCal();
         AGV_control_pub.publish(msg);
         ROS_INFO("当前位置为: %f, %f, %f", AGV_states[0], AGV_states[1], AGV_states[2]*180/3.1415);
-        ROS_INFO("目标位置为: %f, %f", realTimePathPoint[0], realTimePathPoint[1]);
-        ROS_INFO("控制模式为: %d, %d", AGV_Move_State, PathEnable);
-        ROS_INFO("control speed is: %f, angular is %f", AGV_control_state[0],AGV_control_state[1]*180/3.1415);
+        if(Path_State != Path_State_Stop)
+            ROS_INFO("目标位置为: %f, %f", realTimePathPoint[0], realTimePathPoint[1]);
+        // ROS_INFO("控制模式为: %d, %d", AGV_Move_State, Path_state);
+        // ROS_INFO("control speed is: %f, angular is %f", AGV_control_state[0],AGV_control_state[1]*180/3.1415);
+        else if(Path_State == Path_State_Stop)
+            ROS_INFO("等待路径发布");
         ros::spinOnce();
         loop_rate.sleep();
     }
