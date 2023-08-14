@@ -27,8 +27,8 @@ double ControlHz = 20;
 double AgvCommond[9] = {0,0,0,0,0,0,0,0,0};
 double odometerPosition[6] = {0, 0, 0, 0, 0, 0};
 
-// 毫秒延时器
-ros::Rate delay_rate(1000);
+// 是否Log Debug
+bool LogDebugEnable = false;
 
 // AGV 运动模式
 enum AGVSportsMode{
@@ -40,10 +40,10 @@ enum AGVSportsMode{
 int Mode = Disability;
 
 // AGV 原始数据发布使能
-int AGVDataPubEnable = false;
+bool AGVDataPubEnable = false;
 
 // AGV 编码器发布使能
-int AGVEncoderOdomPubEnable = false;
+bool AGVEncoderOdomPubEnable = false;
 
 // 手柄按键信息
 enum HandleBotton{
@@ -56,9 +56,10 @@ enum HandleBotton{
     LT,
     RT,
     unknow3,
+    unknow4,
     LM,
     RM,
-    unknow4,
+    unknow5,
     LD,
     RD
 };
@@ -96,6 +97,10 @@ void HubMotorExit(int sig)
 {
 	//这里进行退出前的数据保存、内存清理、告知其他节点等工作
     // rob.canClose();
+    rob.motorDisEnable(1);
+    rob.motorDisEnable(2);
+    rob.motorDisEnable(3);
+    rob.motorDisEnable(4);
 	ROS_INFO("HubMotor shutting down!");
 	ros::shutdown();
     exit(0);
@@ -108,12 +113,12 @@ void odometer(void)
     double length = sqrt(0.235*0.235 + 0.245*0.245);
     if(rob.hubMotorRealSpeed[0]>10 || rob.hubMotorRealSpeed[1]>10 || rob.hubMotorRealSpeed[2]>10 || rob.hubMotorRealSpeed[3]>10)
     {
-        cout<<"轮毂电机断开连接"<<endl;
+        ROS_WARN("轮毂电机断开连接");
         return;
     }
     if(rob.stepMotorRealPosition[4]>10 || rob.stepMotorRealPosition[5]>10 || rob.stepMotorRealPosition[6]>10 || rob.stepMotorRealPosition[7]>10)
     {
-        cout<<"转向电机断开连接"<<endl;
+        ROS_WARN("转向电机断开连接");
         return;
     }
     odometerPosition[3] = odometerPosition[0];
@@ -145,6 +150,7 @@ void HandleResiveCallBack(sensor_msgs::Joy::ConstPtr msg){
     for(int i=0; i<8; i++){
         HandleRocker[i] = msg->axes.at(i);
     }
+    ROS_DEBUG_STREAM("RM %d" << HandleKey[RM]);
 }
 
 // 电机模式设置
@@ -210,18 +216,19 @@ void AGV_Control(double speed, double dir){
         rob.motorSetSpeed(2, speed_left);
         rob.motorSetSpeed(3, speed_left);
         rob.motorSetSpeed(4, speed_right);
-        ROS_INFO("Set HubMotor:speed = [%f],[%f]", speed_left, speed_right);
+        // ROS_INFO("Set HubMotor:speed = [%f],[%f]", speed_left, speed_right);
     }
     rob.stepMotorSetPosition(5, dir_leftFront);
     rob.stepMotorSetPosition(6, dir_leftBack);
     rob.stepMotorSetPosition(7, dir_rightFront);
     rob.stepMotorSetPosition(8, dir_rightBack);
-    ROS_INFO("Set StepMotor:position = [%f],[%f],[%f],[%f]", dir_leftFront, dir_leftBack, dir_rightFront, dir_rightBack);
+    // ROS_INFO("Set StepMotor:position = [%f],[%f],[%f],[%f]", dir_leftFront, dir_leftBack, dir_rightFront, dir_rightBack);
 }
 
 // AGV 模式切换
 void AGV_Mode_Switching(void){
-    // ros::Rate delay_rate(1000);
+    // 毫秒延时器
+    ros::Rate delay_rate(1000);
     if(HandleKey[RM] == 1){
         if(AGV_Control_Mode == AGV_Control_Procedure){
             AGV_Control_Mode = AGV_Control_Handle;
@@ -249,6 +256,8 @@ void AGV_Mode_Switching(void){
         // rob.stepMotorSetPosition(8, 0);
         while(true){
             delay_rate.sleep();
+            ros::spinOnce();
+            // cout<<"1"<<endl;
             if(HandleKey[RM] == 0)
                 break;
         }
@@ -263,28 +272,46 @@ ros::Publisher AgvOdometerSpeed_pub;
 int main(int argc, char* argv[])
 {
     ros::init(argc, argv, "Agv");  //解析参数，命名结点
-    ros::NodeHandle nh;  //创建句柄，实例化node
-
-    //exit(0);
-    // cout << "系统启动" << endl;
     
-    setlocale(LC_ALL, "");
-    // ROS_INFO("Warning!");
-    // ROS_INFO("退出时，务必使用cril+C进行退出，否则会产生驱动冲突");
-    // ROS_INFO("冲突时需重启电脑");
-    rob.canOpen();
 
-    // std::system("sudo chmod a+rw /dev/input/js0");
+    //创建全局句柄，实例化node
+    ros::NodeHandle nh;  
+
+    //创建局部句柄，实例化node
+    ros::NodeHandle nhPart("~");  
+
+
+    // 设置ROS_INFO中文输出
+    setlocale(LC_ALL, "");
+    ROS_INFO("HubMotor 启动");
+
+    // Getting ROSParams
+    nhPart.getParam("AGVDataPubEnable", AGVDataPubEnable);
+    nhPart.getParam("AGVEncoderOdomPubEnable", AGVEncoderOdomPubEnable);
+    nhPart.getParam("LogDebugEnable", LogDebugEnable);
+
+    if(LogDebugEnable)
+        ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug);
+
+    // cout<<AGVDataPubEnable<<endl;
+    // cout<<AGVEncoderOdomPubEnable<<endl;
+  
+    rob.canOpen();
 
     rob.motorDisEnable(1);
     rob.motorDisEnable(2);
     rob.motorDisEnable(3);
     rob.motorDisEnable(4);
 
-    ROS_INFO("轮毂电机已连接");
+    // ROS_INFO("轮毂电机已连接");
 
     signal(SIGINT, HubMotorExit);
     ros::Rate rate(ControlHz);  
+    // 毫秒延时器
+    ros::Rate delay_rate(1000);
+
+    
+
     if(AGVDataPubEnable)
         AgvData_pub = nh.advertise<std_msgs::Float32MultiArray>("AgvData", 1000);
     if(AGVEncoderOdomPubEnable){
@@ -301,8 +328,10 @@ int main(int argc, char* argv[])
         AGV_Mode_Switching();
 
         // 读取电机数据
-        rob.stepMotorReadPosition();
-        rob.hubMotorReadPosition();
+        if(AGVDataPubEnable || AGVEncoderOdomPubEnable){
+            rob.stepMotorReadPosition();
+            rob.hubMotorReadPosition();
+        }
         
         // 发布AGV原始数据
         if(AGVDataPubEnable){
@@ -315,10 +344,10 @@ int main(int argc, char* argv[])
             AgvData_pub.publish(AgvData);
 
             if(Mode == Disability)
-                ROS_INFO("Pub HubMotor:Disability");
+                ROS_DEBUG("Pub HubMotor:Disability");
             else if(Mode == Speed)
-                ROS_INFO("Pub HubMotor:Speed = [%f],[%f],[%f],[%f]", rob.hubMotorRealSpeed[0], rob.hubMotorRealSpeed[1], rob.hubMotorRealSpeed[2], rob.hubMotorRealSpeed[3]);
-            // ROS_INFO("Pub StepMotor:position = [%f],[%f],[%f],[%f]", rob.stepMotorRealPosition[4], rob.stepMotorRealPosition[5], rob.stepMotorRealPosition[6], rob.stepMotorRealPosition[7]);
+                ROS_DEBUG("Pub HubMotor:Speed = [%f],[%f],[%f],[%f]", rob.hubMotorRealSpeed[0], rob.hubMotorRealSpeed[1], rob.hubMotorRealSpeed[2], rob.hubMotorRealSpeed[3]);
+            ROS_DEBUG("Pub StepMotor:position = [%f],[%f],[%f],[%f]", rob.stepMotorRealPosition[4], rob.stepMotorRealPosition[5], rob.stepMotorRealPosition[6], rob.stepMotorRealPosition[7]);
         }
 
         // 发布编码器里程计
@@ -332,7 +361,7 @@ int main(int argc, char* argv[])
                 AgvOdometerSpeed.data.push_back(odometerPosition[i]);
             AgvOdometerPosition_pub.publish(AgvOdometerPosition);
             AgvOdometerPosition_pub.publish(AgvOdometerPosition);
-            ROS_INFO("odometerStatus = [%f],[%f],[%f],[%f],[%f],[%f] ", 
+            ROS_DEBUG("odometerStatus = [%f],[%f],[%f],[%f],[%f],[%f] ", 
             odometerPosition[0], odometerPosition[1], odometerPosition[2], odometerPosition[3], odometerPosition[4], odometerPosition[5]);
         }
         
@@ -350,7 +379,7 @@ int main(int argc, char* argv[])
                 rob.motorSetSpeed(2, AgvCommond[2]);
                 rob.motorSetSpeed(3, AgvCommond[3]);
                 rob.motorSetSpeed(4, AgvCommond[4]);
-                ROS_INFO("Set HubMotor:speed = [%f],[%f],[%f],[%f]", AgvCommond[1], AgvCommond[2], AgvCommond[3], AgvCommond[4]);
+                ROS_DEBUG("Set HubMotor:speed = [%f],[%f],[%f],[%f]", AgvCommond[1], AgvCommond[2], AgvCommond[3], AgvCommond[4]);
             }
             // else if(Mode == Position)
             // {
@@ -364,18 +393,19 @@ int main(int argc, char* argv[])
             rob.stepMotorSetPosition(6, AgvCommond[6]);
             rob.stepMotorSetPosition(7, AgvCommond[7]);
             rob.stepMotorSetPosition(8, AgvCommond[8]);
-            ROS_INFO("Set StepMotor:position = [%f],[%f],[%f],[%f]", AgvCommond[5], AgvCommond[6], AgvCommond[7], AgvCommond[8]);
+            ROS_DEBUG("Set StepMotor:position = [%f],[%f],[%f],[%f]", AgvCommond[5], AgvCommond[6], AgvCommond[7], AgvCommond[8]);
 
-            ROS_INFO("--------------------------------------------------\r\n\r\n");
+            // ROS_INFO("--------------------------------------------------\r\n");
         }
 
         // 手柄控制
-        else if(AGV_Control_Mode == AGV_Control_Procedure){
+        else if(AGV_Control_Mode == AGV_Control_Handle){
             // 电机模式设置
             if(HandleKey[A] == 1){
                 motorModeSet(Speed);
                 while(true){
                     delay_rate.sleep();
+                    ros::spinOnce();
                     if(HandleKey[A] == 0)
                         break;
                 }
@@ -384,13 +414,17 @@ int main(int argc, char* argv[])
                 motorModeSet(Disability);
                 while(true){
                     delay_rate.sleep();
+                    ros::spinOnce();
                     if(HandleKey[B] == 0)
                         break;
                 }
             }
-            AGV_Control(HandleRocker[LX], HandleRocker[RY]);
-            ROS_INFO("--------------------------------------------------\r\n\r\n");
+            AGV_Control(HandleRocker[LX] * AGV_states[0], HandleRocker[RY] * AGV_states[1]);
+            ROS_DEBUG("AGV 运动状态 %f %f", HandleRocker[LX] * AGV_states[0], HandleRocker[RY] * AGV_states[1]);
+            // ROS_INFO("--------------------------------------------------\r\n");
         }
+        
+        // ROS_INFO("--------------------------------------------------\r\n\r\n");
 
         rate.sleep();
         ros::spinOnce();

@@ -247,7 +247,7 @@ public:
             }
         }
         else{
-            cout<<"StepMotor read no data"<<endl;
+            // cout<<"StepMotor read no data"<<endl;
         }
         canClean(Step);
     }
@@ -308,7 +308,7 @@ public:
             }
         }
         else{
-            cout<<"HubMotor read no data"<<endl;
+            // cout<<"HubMotor read no data"<<endl;
         }
 
     }
