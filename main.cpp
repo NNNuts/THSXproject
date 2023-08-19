@@ -154,8 +154,8 @@ int main(int argc, char* argv[])
     // cout<<VCI_Receive(VCI_USBCAN2,0,0,rec,3000,100)<<endl;
     // exit(0);
 
-    rob.robotReset();
-    rob.robotInit();
+    // rob.robotReset();
+    // rob.robotInit();
 
 
     //-------------------------
@@ -216,6 +216,8 @@ int main(int argc, char* argv[])
     // OutFile.close(); //关闭Test.txt文件
 
     rob.robotReadPositionAll(TC.theta_now);
+    // cout << TC.kinematics(TC.theta_now) << endl;
+    // cout << TC.theta_now[0] << " " << TC.theta_now[1] << " " << TC.theta_now[2] << " " << TC.theta_now[3] << " " << TC.theta_now[4] << " " << TC.theta_now[5] << " " << endl;
 
     // TC.theta_now[0] = 0;
     cout << TC.theta_now[0] << " " << TC.theta_now[1] << " " << TC.theta_now[2] << " " << TC.theta_now[3] << " " << TC.theta_now[4] << " " << TC.theta_now[5] << " " << endl;
@@ -229,27 +231,27 @@ int main(int argc, char* argv[])
     }
     // exit(0);
 
-    TC.theta_now[0] = 0; 
-    TC.theta_now[1] = rob.deg2rad(-60);
-    TC.theta_now[2] = rob.deg2rad(-60);
-    TC.theta_now[3] = rob.deg2rad(-60);
-    TC.theta_now[4] = 0;
-    TC.theta_now[5] = 0;
+    // TC.theta_now[0] = 0; 
+    // TC.theta_now[1] = rob.deg2rad(-60);
+    // TC.theta_now[2] = rob.deg2rad(-60);
+    // TC.theta_now[3] = rob.deg2rad(-60);
+    // TC.theta_now[4] = 0;
+    // TC.theta_now[5] = 0;
     // TC.theta_now[0] = 0; 
     // TC.theta_now[1] = rob.deg2rad(0);
     // TC.theta_now[2] = rob.deg2rad(0);
     // TC.theta_now[3] = rob.deg2rad(0);
     // TC.theta_now[4] = 0;
     // TC.theta_now[5] = 0;
-    rob.robotSetPositionAll(TC.theta_now);
+    // rob.robotSetPositionAll(TC.theta_now);
     // exit(0);
-    msleep(5000);
-    rob.robotReadPositionAll(TC.theta_now);
+    // msleep(5000);
+    // rob.robotReadPositionAll(TC.theta_now);
 
     
-    Matrix4d mat = TC.kinematics(TC.theta_now);
+    // Matrix4d mat = TC.kinematics(TC.theta_now);
     // cout << mat << endl;
-    Rpy rpy = TC.Matrix2Rpy(mat.block<3, 3>(0, 0));
+    // Rpy rpy = TC.Matrix2Rpy(mat.block<3, 3>(0, 0));
     // cout << rpy << endl << endl;
     // MoveJ(200, 600, 800, -90, 0, 0, 5);
     // double parameter[6] = {200, 500, 800, rob.deg2rad(90), rob.deg2rad(0), rob.deg2rad(0)};
@@ -433,6 +435,18 @@ void keyboardScan(void){
                     else if(t.value == 0)
                         key[G] = 0;
                 }
+                else if(t.code == KEY_Y){
+                    if(t.value == 1)
+                        key[Y] = 1;
+                    else if(t.value == 0)
+                        key[Y] = 0;
+                }
+                else if(t.code == KEY_H){
+                    if(t.value == 1)
+                        key[H] = 1;
+                    else if(t.value == 0)
+                        key[H] = 0;
+                }
                 else if(t.code == KEY_SPACE){
                     if(t.value == 1)
                         key[Space] = 1;
@@ -489,22 +503,22 @@ void KeyBoardControl(double x, double y, double z, double RX, double RY, double 
             z -= XYZSpeed;
         }
         if(key[R] == 1){
-            RX += 3;
+            RX += 1;
         }
         else if (key[F] == 1){
-            RX -= 3;
+            RX -= 1;
         }
         if(key[T] == 1){
-            RY += 3;
+            RY += 1;
         }
         else if (key[G] == 1){
-            RY -= 3;
+            RY -= 1;
         }
         if(key[Y] == 1){
-            RZ += 3;
+            RZ += 1;
         }
         else if (key[H] == 1){
-            RZ -= 3;
+            RZ -= 1;
         }
         if(key[Z] == 1){
             XYZSpeed += 1;
