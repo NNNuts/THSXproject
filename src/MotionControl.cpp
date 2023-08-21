@@ -44,6 +44,10 @@ double ControlHz = 100;
 
 double AGV_states[3] = {10000, 10000, 0};
 double AGV_control_state[2] = {0, 0};
+
+// 设置路径目标点
+double PathGoal[4] = {0, 0, 1, 1};
+
 // 设置路径点
 double Path[100][2] = { 0.0,  0.0,
                     //     0.0,  0.0,
@@ -537,6 +541,15 @@ int main(int argc, char **argv)
     AGV_control_pub = nh.advertise<std_msgs::Float32MultiArray>("AgvControl", 1000);
     ros::Subscriber LidarOdo_sub = nh.subscribe("odom", 1000, LidarOdoCallback);
     ros::Subscriber Path_sub = nh.subscribe("path", 1000, PathResiveCallBack);
+    ros::Publisher PathGoalSet_pub = nh.advertise<std_msgs::Float32MultiArray>("start_goal", 1000);;
+
+    std_msgs::Float32MultiArray msg;
+    msg.data.push_back(PathGoal[0]);
+    msg.data.push_back(PathGoal[1]);
+    msg.data.push_back(PathGoal[2]);
+    msg.data.push_back(PathGoal[3]);
+
+    PathGoalSet_pub.publish(msg);
     // ros::Subscriber Handle_sub = nh.subscribe("joy", 1000, HandleResiveCallBack);
     setlocale(LC_ALL, "");
     // ROS_INFO("Warning!");

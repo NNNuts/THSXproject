@@ -30,6 +30,9 @@ double odometerPosition[6] = {0, 0, 0, 0, 0, 0};
 // 是否Log Debug
 bool LogDebugEnable = false;
 
+// AGV 轮距
+double  TrackWidth[2] = {490, 500};
+
 // AGV 运动模式
 enum AGVSportsMode{
     Maintain,
@@ -45,18 +48,33 @@ bool AGVDataPubEnable = false;
 // AGV 编码器发布使能
 bool AGVEncoderOdomPubEnable = false;
 
-// 手柄按键信息
+// // 无线手柄按键信息
+// enum HandleBotton{
+//     A,
+//     B,
+//     unknow1,
+//     X,
+//     Y,
+//     unknow2,
+//     LT,
+//     RT,
+//     unknow3,
+//     unknow4,
+//     LM,
+//     RM,
+//     unknow5,
+//     LD,
+//     RD
+// };
+
+// 有线按键
 enum HandleBotton{
     A,
     B,
-    unknow1,
     X,
     Y,
-    unknow2,
     LT,
     RT,
-    unknow3,
-    unknow4,
     LM,
     RM,
     unknow5,
@@ -65,21 +83,36 @@ enum HandleBotton{
 };
 int HandleKey[15] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-// 手柄摇杆信息
+// // 无线手柄摇杆信息
+// enum HandleAxes{
+//     LY,
+//     LX,
+//     RY,
+//     RX,
+//     LB,
+//     RB,
+//     KY,
+//     KX
+// };
+
+// 有线手柄摇杆信息
 enum HandleAxes{
     LY,
     LX,
+    LB,
     RY,
     RX,
-    LB,
     RB,
     KY,
     KX
 };
 double HandleRocker[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
-// AGV 运动状态
-double AGV_states[2] = {0.2, 45./180*EIGEN_PI};
+// AGV 手柄运动限制
+double AGV_limits[6] = {0.2, 30./180*EIGEN_PI, 0.5, 10./180*EIGEN_PI, 1, 60./180*EIGEN_PI};
+
+// AGV 手柄运动状态
+double AGV_states[2] = {0, 0};
 
 // AGV 控制模式
 enum AGVControlMode{
@@ -144,13 +177,13 @@ void odometer(void)
 
 // 接收手柄信息
 void HandleResiveCallBack(sensor_msgs::Joy::ConstPtr msg){
-    for(int i=0; i<15; i++){
+    for(int i=0; i<11; i++){
         HandleKey[i] = msg->buttons.at(i);
     }
     for(int i=0; i<8; i++){
         HandleRocker[i] = msg->axes.at(i);
     }
-    ROS_DEBUG_STREAM("RM %d" << HandleKey[RM]);
+    // ROS_DEBUG_STREAM("RM %d" << HandleKey[RM]);
 }
 
 // 电机模式设置
@@ -186,23 +219,50 @@ void motorModeSet(int mode){
 void AGV_Control(double speed, double dir){
     double speed_left,speed_right;
     double dir_leftFront,dir_rightFront,dir_leftBack,dir_rightBack;
+
+    if(speed > AGV_states[0]){
+        AGV_states[0] += AGV_limits[2] / ControlHz;
+        if(AGV_states[0] > speed)
+            AGV_states[0] = speed;
+    }
+    else if(speed < AGV_states[0]){
+        AGV_states[0] -= AGV_limits[2] / ControlHz;
+        if(AGV_states[0] < speed)
+            AGV_states[0] = speed;
+    }
+    speed = AGV_states[0];
+
+    if(dir > AGV_states[1]){
+        AGV_states[1] += AGV_limits[3] / ControlHz;
+        if(AGV_states[1] > dir)
+            AGV_states[1] = dir;
+    }
+    else if(dir < AGV_states[1]){
+        AGV_states[1] -= AGV_limits[3] / ControlHz;
+        if(AGV_states[1] < dir)
+            AGV_states[1] = dir;
+    }
+    dir = AGV_states[1];
+
     if(dir>0){
-        double T = 245/tan(dir);
-        speed_left  = (T-235)/T * speed;
-        speed_right = (T+235)/T * speed;
-        dir_leftFront    = atan2(245,T-235);
-        dir_rightFront   = atan2(245,T+235);
-        dir_leftBack    = -atan2(245,T-235);
-        dir_rightBack   = -atan2(245,T+235);
+        double T = TrackWidth[0]/2/tan(dir);
+        // speed_left  = (T-235)/T * speed;
+        // speed_right = (T+235)/T * speed;
+        speed_left  = sqrt((T-TrackWidth[1]/2)*(T-TrackWidth[1]/2) + TrackWidth[0]/2*TrackWidth[0]/2) / sqrt(T*T + TrackWidth[0]/2*TrackWidth[0]/2) * speed;
+        speed_right = sqrt((T+TrackWidth[1]/2)*(T+TrackWidth[1]/2) + TrackWidth[0]/2*TrackWidth[0]/2) / sqrt(T*T + TrackWidth[0]/2*TrackWidth[0]/2) * speed;
+        dir_leftFront    =  atan2(TrackWidth[0]/2,T-TrackWidth[1]/2);
+        dir_rightFront   =  atan2(TrackWidth[0]/2,T+TrackWidth[1]/2);
+        dir_leftBack     = -atan2(TrackWidth[0]/2,T-TrackWidth[1]/2);
+        dir_rightBack    = -atan2(TrackWidth[0]/2,T+TrackWidth[1]/2);
     }
     else if(dir<0){
-        double T = 245/tan(-dir);
-        speed_left  = (T+235)/T * speed;
-        speed_right = (T-235)/T * speed;
-        dir_leftFront    = -atan2(245,T+235);
-        dir_rightFront   = -atan2(245,T-235);
-        dir_leftBack    = atan2(245,T+235);
-        dir_rightBack   = atan2(245,T-235);
+        double T = TrackWidth[0]/tan(-dir);
+        speed_left  = sqrt((T+TrackWidth[1]/2)*(T+TrackWidth[1]/2) + TrackWidth[0]/2*TrackWidth[0]/2) / sqrt(T*T + TrackWidth[0]/2*TrackWidth[0]/2) * speed;
+        speed_right = sqrt((T-TrackWidth[1]/2)*(T-TrackWidth[1]/2) + TrackWidth[0]/2*TrackWidth[0]/2) / sqrt(T*T + TrackWidth[0]/2*TrackWidth[0]/2) * speed;
+        dir_leftFront    = -atan2(TrackWidth[0]/2,T+TrackWidth[1]/2);
+        dir_rightFront   = -atan2(TrackWidth[0]/2,T-TrackWidth[1]/2);
+        dir_leftBack     =  atan2(TrackWidth[0]/2,T+TrackWidth[1]/2);
+        dir_rightBack    =  atan2(TrackWidth[0]/2,T-TrackWidth[1]/2);
     }
     else{
         speed_left  = speed;
@@ -210,6 +270,8 @@ void AGV_Control(double speed, double dir){
         dir_rightFront = dir_rightBack   = 0;
         dir_leftFront = dir_leftBack   = 0;
     }
+
+    
         
     if(Mode == Speed){
         rob.motorSetSpeed(1, speed_left);
@@ -419,8 +481,53 @@ int main(int argc, char* argv[])
                         break;
                 }
             }
-            AGV_Control(HandleRocker[LX] * AGV_states[0], HandleRocker[RY] * AGV_states[1]);
-            ROS_DEBUG("AGV 运动状态 %f %f", HandleRocker[LX] * AGV_states[0], HandleRocker[RY] * AGV_states[1]);
+            if(HandleRocker[KX] > 0.5){
+                while(true){
+                    delay_rate.sleep();
+                    ros::spinOnce();
+                    if(HandleRocker[KX] < 0.5)
+                        break;
+                }
+                AGV_limits[0] += 0.1;
+                if(AGV_limits[0] > AGV_limits[4])
+                    AGV_limits[0] = AGV_limits[4];
+            }
+            else if(HandleRocker[KX] < -0.5){
+                while(true){
+                    delay_rate.sleep();
+                    ros::spinOnce();
+                    if(HandleRocker[KX] > -0.5)
+                        break;
+                }
+                AGV_limits[0] -= 0.1;
+                if(AGV_limits[0] < 0.1)
+                    AGV_limits[0] = 0.1;
+            }
+
+            if(HandleRocker[KY] > 0.5){
+                while(true){
+                    delay_rate.sleep();
+                    ros::spinOnce();
+                    if(HandleRocker[KY] < 0.5)
+                        break;
+                }
+                AGV_limits[1] += 10./180*EIGEN_PI;
+                if(AGV_limits[1] > AGV_limits[5])
+                    AGV_limits[1] = AGV_limits[5];
+            }
+            else if(HandleRocker[KY] < -0.5){
+                while(true){
+                    delay_rate.sleep();
+                    ros::spinOnce();
+                    if(HandleRocker[KY] > -0.5)
+                        break;
+                }
+                AGV_limits[1] -= 10./180*EIGEN_PI;
+                if(AGV_limits[1] < 10./180*EIGEN_PI)
+                    AGV_limits[1] = 10./180*EIGEN_PI;
+            }
+            AGV_Control(HandleRocker[LX] * AGV_limits[0], HandleRocker[RY] * AGV_limits[1]);
+            ROS_DEBUG("AGV 运动状态 %f %f", HandleRocker[LX] * AGV_limits[0], HandleRocker[RY] * AGV_limits[1]);
             // ROS_INFO("--------------------------------------------------\r\n");
         }
         
