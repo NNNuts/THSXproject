@@ -46,64 +46,12 @@ double AGV_states[3] = {10000, 10000, 0};
 double AGV_control_state[2] = {0, 0};
 
 // 设置路径目标点
-double PathGoal[4] = {0, 0, 1, 1};
+double PathGoal[2] = {10, 12};
 
 // 设置路径点
-double Path[100][2] = { 0.0,  0.0,
-                    //     0.0,  0.0,
-                    //     -3.0, -3.0, 
-                    //    -5.0, -4.0,
-                    //     0.0,  0.0,
-                        0.0671353, 0.509237,
-                        -0.0183819, 1.74058,
-                        0.284655, 4.15835,
-                        0.25155,  5.83538,
-                        0.284222, 7.75411,
-                        0.20073 ,  9.21236,
-                        0.24905, 11.2782,
-                        0.15218, 13.2517,
-                        0.16506, 15.1846, 
-                        0.269441, 16.6759, 
-                        0.144265, 18.4421,
-                        0.0620191, 20.5677,
-                        -0.00233865, 22.8672,
-                        0.311233, 24.3077,
-                        -0.841656, 25.936,
-                        -0.74615, 27.2339,
-                        -0.381216, 30.136,
-                        0.159494, 32.4538,
-                        0.105583, 33.8914,
-                        0.161139, 35.5936,
-                        0.0980997, 37.3526,
-                        0.205923, 39.4603,
-                        0.300056, 41.1346,
-                        0.235526, 43.7409,
-                        0.181987, 45.5715,
-                        0.144904, 47.4642,
-                        0.196856, 48.4696,
-                        0.181917, 50.2633,
-                        0.263119, 52.1449,
-                        0.0123597, 54.0096,
-                        -0.038867, 54.8104,
-                        -0.0213329, 56.4802,
-                        0.0210161, 57.9339,
-                        -0.114004, 60.1717, 
-                        0.0,  0.0,
-                       -3.0, -3.0, 
-                       -5.0, -4.0,
-                        0.0,  0.0,
-                       -3.0, -3.0, 
-                       -5.0, -4.0,
-                        0.0,  0.0, 
-                       -3.0, -3.0, 
-                       -5.0, -4.0,
-                        0.0,  0.0,
-                       -3.0, -3.0, 
-                        0.0,  0.0, 
-                       -3.0, -3.0,
-                        0.0,  0.0}; 
+double Path[100][2]; 
 // 路径点数
-int PathNum = 10;
+int PathNum = 0;
 
 // 路径速度
 double PathSpeed = 0.3;
@@ -149,8 +97,8 @@ double realTimePathPoint[2] = {0, 0};
 // dic dir
 double AGV_ERR[2] = {0, 0}; 
 //                     P  I  D  maxChange           maxlimit
-double PID_spd[5] = {  1, 0, 0,       0.5,        PathSpeed};
-double PID_dir[5] = {  1, 0, 0,         2, 60./180*EIGEN_PI};
+double PID_spd[5] = {  1, 0, 0,       0.3,        PathSpeed};
+double PID_dir[5] = {  1, 0, 0,         2, 45./180*EIGEN_PI};
 
 // 末端斜移阈值
 double Skewing_threshold = 0.1;
@@ -170,14 +118,7 @@ PID DirectionPid(PID_dir[0], PID_dir[1], PID_dir[2]);
 // 初始化
 void pathInit(void)
 {
-    ros::Rate delay_rate(1000);
-    ROS_INFO("等待AGV定位");
-    while(AGV_states[0]>5000 || AGV_states[1]>5000){
-        delay_rate.sleep();
-        ros::spinOnce();
-    }    
-    Path[0][0] = AGV_states[0];
-    Path[0][1] = AGV_states[1];
+    
     AGV_Move_State = AGV_Move_Ackermann;
     // HubMotor_Enable = true;
     // TurnMotor_Enable = true;
@@ -193,6 +134,7 @@ void AGVControlReset(int mod){
     for(int i=0;i<8;i++)
         msg.data.push_back(0);
     AGV_control_pub.publish(msg);
+    ros::spinOnce();
 }
 
 void MotionControlExit(int sig)
@@ -246,27 +188,28 @@ void LidarOdoCallback(const nav_msgs::Odometry::ConstPtr& msg){
 // 计算实时路径点
 void realTimePathPointCal(void)
 {
-    if(Path_State == true)
+    if(Path_State != Path_State_Stop){
         PathTime += 1.0/ControlHz;
-    double PathDistance = PathSpeed * PathTime;
-    for(int i=0; i<PathNum; i++){
-        if(PathDistance < sqrt((Path[i+1][1]-Path[i][1])*(Path[i+1][1]-Path[i][1])+(Path[i+1][0]-Path[i][0])*(Path[i+1][0]-Path[i][0]))){
-            // 实时路径离散点
-            // realTimePathPoint[0] = Path[i][0] + PathDistance * (Path[i+1][0]-Path[i][0]) / sqrt((Path[i+1][1]-Path[i][1])*(Path[i+1][1]-Path[i][1])+(Path[i+1][0]-Path[i][0])*(Path[i+1][0]-Path[i][0]));
-            // realTimePathPoint[1] = Path[i][1] + PathDistance * (Path[i+1][1]-Path[i][1]) / sqrt((Path[i+1][1]-Path[i][1])*(Path[i+1][1]-Path[i][1])+(Path[i+1][0]-Path[i][0])*(Path[i+1][0]-Path[i][0]));
-            
-            //  目标路径点
-            realTimePathPoint[0] = Path[i+1][0];
-            realTimePathPoint[1] = Path[i+1][1];
+        double PathDistance = PathSpeed * PathTime;
+        for(int i=0; i<PathNum; i++){
+            if(PathDistance < sqrt((Path[i+1][1]-Path[i][1])*(Path[i+1][1]-Path[i][1])+(Path[i+1][0]-Path[i][0])*(Path[i+1][0]-Path[i][0]))){
+                // 实时路径离散点
+                // realTimePathPoint[0] = Path[i][0] + PathDistance * (Path[i+1][0]-Path[i][0]) / sqrt((Path[i+1][1]-Path[i][1])*(Path[i+1][1]-Path[i][1])+(Path[i+1][0]-Path[i][0])*(Path[i+1][0]-Path[i][0]));
+                // realTimePathPoint[1] = Path[i][1] + PathDistance * (Path[i+1][1]-Path[i][1]) / sqrt((Path[i+1][1]-Path[i][1])*(Path[i+1][1]-Path[i][1])+(Path[i+1][0]-Path[i][0])*(Path[i+1][0]-Path[i][0]));
+                
+                //  目标路径点
+                realTimePathPoint[0] = Path[i+1][0];
+                realTimePathPoint[1] = Path[i+1][1];
 
-            Path_State = Path_State_Run;
-            break;
-        }
-        else{
-            PathDistance -= sqrt((Path[i+1][1]-Path[i][1])*(Path[i+1][1]-Path[i][1])+(Path[i+1][0]-Path[i][0])*(Path[i+1][0]-Path[i][0]));
-            realTimePathPoint[0] = Path[PathNum][0];
-            realTimePathPoint[1] = Path[PathNum][1];
-            Path_State = Path_State_WatingStop;
+                Path_State = Path_State_Run;
+                break;
+            }
+            else{
+                PathDistance -= sqrt((Path[i+1][1]-Path[i][1])*(Path[i+1][1]-Path[i][1])+(Path[i+1][0]-Path[i][0])*(Path[i+1][0]-Path[i][0]));
+                realTimePathPoint[0] = Path[PathNum][0];
+                realTimePathPoint[1] = Path[PathNum][1];
+                Path_State = Path_State_WatingStop;
+            }
         }
     }
     // ROS_INFO("realTimePathPoint = %f, %f", realTimePathPoint[0], realTimePathPoint[1]);
@@ -490,74 +433,75 @@ void AGV_ConCal(void)
 void PathResiveCallBack(std_msgs::Float32MultiArray::ConstPtr msg)
 {
     if(Path_State == Path_State_Stop){
-        int PathNum = msg->data.at(0);
-        for(int i=0; i<PathNum; i++){
-            Path[i+1][0] = msg->data.at(2*i + 1);
-            Path[i+1][1] = msg->data.at(2*i + 2);
+        PathNum = msg->data.at(0);
+        for(int i=0; i<PathNum-1; i++){
+            Path[i][0] = msg->data.at(2*i + 1);
+            Path[i][1] = msg->data.at(2*i + 2);
         }
         pathInit();
+        ROS_INFO("%d", PathNum);
+        ROS_INFO("路径接收成功");
     }
 }
 
-// // 接收手柄信息
-// void HandleResiveCallBack(sensor_msgs::Joy::ConstPtr msg){
-//     for(int i=0; i<15; i++){
-//         HandleKey[i] = msg->buttons.at(i);
-//     }
-//     for(int i=0; i<8; i++){
-//         HandleRocker[i] = msg->axes.at(i);
-//     }
-// }
-
-
-
-// // AGV 模式切换
-// void AGV_Mode_Switching(void){
-//     ros::Rate delay_rate(1000);
-//     if(HandleKey[RM] == 1){
-//         if(AGV_Control_mode == AGV_Control_Path){
-//             AGV_Control_mode = AGV_Control_Handle;
-//         }
-//         else if(AGV_Control_mode == AGV_Control_Handle){
-//             AGV_Control_mode = AGV_Control_Path;
-
-//         }
-//         AGVControlReset();
-//         while(true){
-//             delay_rate.sleep();
-//             if(HandleKey[RM] == 0)
-//                 break;
-//         }
-//     }
-// }
 
 // 主程序
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "MotionControl");
     ros::NodeHandle nh;
+
+    //创建局部句柄，实例化node
+    ros::NodeHandle nhPart("~");  
+    // Getting ROSParams
+    nhPart.getParam("goal_x", PathGoal[0]);
+    nhPart.getParam("goal_y", PathGoal[1]);
  
+    setlocale(LC_ALL, "");
     signal(SIGINT, MotionControlExit);
     AGV_control_pub = nh.advertise<std_msgs::Float32MultiArray>("AgvControl", 1000);
     ros::Subscriber LidarOdo_sub = nh.subscribe("odom", 1000, LidarOdoCallback);
     ros::Subscriber Path_sub = nh.subscribe("path", 1000, PathResiveCallBack);
-    ros::Publisher PathGoalSet_pub = nh.advertise<std_msgs::Float32MultiArray>("start_goal", 1000);;
+    ros::Publisher PathGoalSet_pub = nh.advertise<std_msgs::Float32MultiArray>("start_goal", 1000);
 
-    std_msgs::Float32MultiArray msg;
-    msg.data.push_back(PathGoal[0]);
-    msg.data.push_back(PathGoal[1]);
-    msg.data.push_back(PathGoal[2]);
-    msg.data.push_back(PathGoal[3]);
+    AGV_Move_State = AGV_Move_Stop;
+    Path_State     = Path_State_Stop;
+    ros::Rate delay_rate(1000);
+    ROS_INFO("等待AGV定位");
+    while(AGV_states[0]>5000 || AGV_states[1]>5000){
+        delay_rate.sleep();
+        ros::spinOnce();
+    }    
 
-    PathGoalSet_pub.publish(msg);
-    // ros::Subscriber Handle_sub = nh.subscribe("joy", 1000, HandleResiveCallBack);
-    setlocale(LC_ALL, "");
+
+
+    std_msgs::Float32MultiArray PathGoalSet_msg;
+    PathGoalSet_msg.data.push_back(AGV_states[0]);
+    PathGoalSet_msg.data.push_back(AGV_states[1]);
+    PathGoalSet_msg.data.push_back(PathGoal[0]);
+    PathGoalSet_msg.data.push_back(PathGoal[1]);
+
+
+
+    while(true){
+        PathGoalSet_pub.publish(PathGoalSet_msg);
+        ros::spinOnce();
+        ros::Rate delay_rate(1);
+        delay_rate.sleep();
+        if(Path_State == Path_State_Run)
+            break;
+    }
+    // PathGoalSet_pub.publish(PathGoalSet_msg);
+    // ros::spinOnce();
+
+    
     // ROS_INFO("Warning!");
     // ROS_INFO("运控启动");
     ros::Rate loop_rate(ControlHz);
     char ch;
-    // pathInit();
-    AGVControlReset(Speed);
+    for(int i=0;i<5;i++)
+        AGVControlReset(Speed);
+    
     while (ros::ok()){
         realTimePathPointCal();
         CalAGVERR();

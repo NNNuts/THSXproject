@@ -1,0 +1,10 @@
+<launch>
+    <node pkg="HubMotor_pkg" name="RRT" type="path_ros.py" required="true" output="screen">
+        <param name="pgm" value="$(find HubMotor_pkg)/scripts/data/company.pgm" />
+        <param name="yaml" value="$(find HubMotor_pkg)/scripts/data/company.yaml" />
+    </node>
+    <node pkg="HubMotor_pkg" name="MotionControl" type="MotionControl" output="screen" required="true">
+        <param name="goal_x" value="10" />
+        <param name="goal_y" value="12" />
+    </node>
+</launch>
