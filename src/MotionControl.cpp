@@ -170,7 +170,8 @@ void LidarOdoCallback(const nav_msgs::Odometry::ConstPtr& msg){
 
     
     //雷达偏移矫正
-    AGV_states[2] = AGV_states[2] - 135./180*EIGEN_PI;
+    // AGV_states[2] = AGV_states[2] - 135./180*EIGEN_PI; //leisheng
+    AGV_states[2] = AGV_states[2] + 3.5/180*EIGEN_PI; //dajiang
     if(AGV_states[2] > EIGEN_PI)
         AGV_states[2] -= 2*EIGEN_PI;
     else if(AGV_states[2] < -EIGEN_PI)
@@ -288,6 +289,7 @@ void CalAGVERR(void)
     // 计算偏差角度
     AGV_ERR[1] = atan2(realTimePathPoint[1]-AGV_states[1],realTimePathPoint[0]-AGV_states[0]);
     AGV_ERR[1] = AGV_ERR[1] - AGV_states[2];
+    ROS_INFO("AGV_ERR %f",180.*AGV_ERR[1]/3.1415926);
     if(AGV_ERR[1] > EIGEN_PI)
         AGV_ERR[1] -= 2*EIGEN_PI;
     else if(AGV_ERR[1] < -EIGEN_PI)
@@ -460,7 +462,9 @@ int main(int argc, char **argv)
     setlocale(LC_ALL, "");
     signal(SIGINT, MotionControlExit);
     AGV_control_pub = nh.advertise<std_msgs::Float32MultiArray>("AgvControl", 1000);
-    ros::Subscriber LidarOdo_sub = nh.subscribe("odom", 1000, LidarOdoCallback);
+    // ros::Subscriber LidarOdo_sub = nh.subscribe("odom", 1000, LidarOdoCallback);
+    ros::Subscriber LidarOdo_sub = nh.subscribe("Odometry", 1000, LidarOdoCallback);
+    
     ros::Subscriber Path_sub = nh.subscribe("path", 1000, PathResiveCallBack);
     ros::Publisher PathGoalSet_pub = nh.advertise<std_msgs::Float32MultiArray>("start_goal", 1000);
 
@@ -472,6 +476,14 @@ int main(int argc, char **argv)
         delay_rate.sleep();
         ros::spinOnce();
     }    
+
+    // realTimePathPoint[0] = 0;
+    // realTimePathPoint[1] = 0;
+    // while(true){
+    //     CalAGVERR();
+    //     ros::spinOnce();
+    // }
+    
 
 
 
