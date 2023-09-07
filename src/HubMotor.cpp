@@ -33,14 +33,22 @@ bool LogDebugEnable = false;
 // AGV 轮距
 double  TrackWidth[2] = {490, 500};
 
-// AGV 运动模式
-enum AGVSportsMode{
+// AGV 使能模式
+enum AGVEnableModeType{
     Maintain,
     Disability,
     Speed,
     Position
 };
-int Mode = Disability;
+AGVEnableModeType Mode = Disability;
+
+// AGV 手柄运动模式
+enum AGVHandleRunModeType{
+    Ackermann,
+    Skewing,
+    Spin
+};
+AGVHandleRunModeType AGV_HandleRunMode = Ackermann;
 
 // AGV 原始数据发布使能
 bool AGVDataPubEnable = false;
@@ -187,7 +195,7 @@ void HandleResiveCallBack(sensor_msgs::Joy::ConstPtr msg){
 }
 
 // 电机模式设置
-void motorModeSet(int mode){
+void motorModeSet(AGVEnableModeType mode){
     Mode = mode;
     if(mode == Speed){
         // 设置速度控制模式
@@ -217,74 +225,128 @@ void motorModeSet(int mode){
 
 // AGV 运动控制
 void AGV_Control(double speed, double dir){
-    double speed_left,speed_right;
-    double dir_leftFront,dir_rightFront,dir_leftBack,dir_rightBack;
+    if(AGV_HandleRunMode == Ackermann){
+        speed *= AGV_limits[0];
+        dir *= AGV_limits[1];
+        double speed_left,speed_right;
+        double dir_leftFront,dir_rightFront,dir_leftBack,dir_rightBack;
 
-    if(speed > AGV_states[0]){
-        AGV_states[0] += AGV_limits[2] / ControlHz;
-        if(AGV_states[0] > speed)
-            AGV_states[0] = speed;
-    }
-    else if(speed < AGV_states[0]){
-        AGV_states[0] -= AGV_limits[2] / ControlHz;
-        if(AGV_states[0] < speed)
-            AGV_states[0] = speed;
-    }
-    speed = AGV_states[0];
+        if(speed > AGV_states[0]){
+            AGV_states[0] += AGV_limits[2] / ControlHz;
+            if(AGV_states[0] > speed)
+                AGV_states[0] = speed;
+        }
+        else if(speed < AGV_states[0]){
+            AGV_states[0] -= AGV_limits[2] / ControlHz;
+            if(AGV_states[0] < speed)
+                AGV_states[0] = speed;
+        }
+        speed = AGV_states[0];
 
-    if(dir > AGV_states[1]){
-        AGV_states[1] += AGV_limits[3] / ControlHz;
-        if(AGV_states[1] > dir)
-            AGV_states[1] = dir;
-    }
-    else if(dir < AGV_states[1]){
-        AGV_states[1] -= AGV_limits[3] / ControlHz;
-        if(AGV_states[1] < dir)
-            AGV_states[1] = dir;
-    }
-    dir = AGV_states[1];
+        if(dir > AGV_states[1]){
+            AGV_states[1] += AGV_limits[3] / ControlHz;
+            if(AGV_states[1] > dir)
+                AGV_states[1] = dir;
+        }
+        else if(dir < AGV_states[1]){
+            AGV_states[1] -= AGV_limits[3] / ControlHz;
+            if(AGV_states[1] < dir)
+                AGV_states[1] = dir;
+        }
+        dir = AGV_states[1];
 
-    if(dir>0){
-        double T = TrackWidth[0]/2/tan(dir);
-        // speed_left  = (T-235)/T * speed;
-        // speed_right = (T+235)/T * speed;
-        speed_left  = sqrt((T-TrackWidth[1]/2)*(T-TrackWidth[1]/2) + TrackWidth[0]/2*TrackWidth[0]/2) / sqrt(T*T + TrackWidth[0]/2*TrackWidth[0]/2) * speed;
-        speed_right = sqrt((T+TrackWidth[1]/2)*(T+TrackWidth[1]/2) + TrackWidth[0]/2*TrackWidth[0]/2) / sqrt(T*T + TrackWidth[0]/2*TrackWidth[0]/2) * speed;
-        dir_leftFront    =  atan2(TrackWidth[0]/2,T-TrackWidth[1]/2);
-        dir_rightFront   =  atan2(TrackWidth[0]/2,T+TrackWidth[1]/2);
-        dir_leftBack     = -atan2(TrackWidth[0]/2,T-TrackWidth[1]/2);
-        dir_rightBack    = -atan2(TrackWidth[0]/2,T+TrackWidth[1]/2);
-    }
-    else if(dir<0){
-        double T = TrackWidth[0]/tan(-dir);
-        speed_left  = sqrt((T+TrackWidth[1]/2)*(T+TrackWidth[1]/2) + TrackWidth[0]/2*TrackWidth[0]/2) / sqrt(T*T + TrackWidth[0]/2*TrackWidth[0]/2) * speed;
-        speed_right = sqrt((T-TrackWidth[1]/2)*(T-TrackWidth[1]/2) + TrackWidth[0]/2*TrackWidth[0]/2) / sqrt(T*T + TrackWidth[0]/2*TrackWidth[0]/2) * speed;
-        dir_leftFront    = -atan2(TrackWidth[0]/2,T+TrackWidth[1]/2);
-        dir_rightFront   = -atan2(TrackWidth[0]/2,T-TrackWidth[1]/2);
-        dir_leftBack     =  atan2(TrackWidth[0]/2,T+TrackWidth[1]/2);
-        dir_rightBack    =  atan2(TrackWidth[0]/2,T-TrackWidth[1]/2);
-    }
-    else{
-        speed_left  = speed;
-        speed_right = speed;
-        dir_rightFront = dir_rightBack   = 0;
-        dir_leftFront = dir_leftBack   = 0;
-    }
+        if(dir>0){
+            double T = TrackWidth[0]/2/tan(dir);
+            speed_left  = sqrt((T-TrackWidth[1]/2)*(T-TrackWidth[1]/2) + TrackWidth[0]/2*TrackWidth[0]/2) / sqrt(T*T + TrackWidth[0]/2*TrackWidth[0]/2) * speed;
+            speed_right = sqrt((T+TrackWidth[1]/2)*(T+TrackWidth[1]/2) + TrackWidth[0]/2*TrackWidth[0]/2) / sqrt(T*T + TrackWidth[0]/2*TrackWidth[0]/2) * speed;
+            dir_leftFront    =  atan2(TrackWidth[0]/2,T-TrackWidth[1]/2);
+            dir_rightFront   =  atan2(TrackWidth[0]/2,T+TrackWidth[1]/2);
+            dir_leftBack     = -atan2(TrackWidth[0]/2,T-TrackWidth[1]/2);
+            dir_rightBack    = -atan2(TrackWidth[0]/2,T+TrackWidth[1]/2);
+        }
+        else if(dir<0){
+            double T = TrackWidth[0]/tan(-dir);
+            speed_left  = sqrt((T+TrackWidth[1]/2)*(T+TrackWidth[1]/2) + TrackWidth[0]/2*TrackWidth[0]/2) / sqrt(T*T + TrackWidth[0]/2*TrackWidth[0]/2) * speed;
+            speed_right = sqrt((T-TrackWidth[1]/2)*(T-TrackWidth[1]/2) + TrackWidth[0]/2*TrackWidth[0]/2) / sqrt(T*T + TrackWidth[0]/2*TrackWidth[0]/2) * speed;
+            dir_leftFront    = -atan2(TrackWidth[0]/2,T+TrackWidth[1]/2);
+            dir_rightFront   = -atan2(TrackWidth[0]/2,T-TrackWidth[1]/2);
+            dir_leftBack     =  atan2(TrackWidth[0]/2,T+TrackWidth[1]/2);
+            dir_rightBack    =  atan2(TrackWidth[0]/2,T-TrackWidth[1]/2);
+        }
+        else{
+            speed_left  = speed;
+            speed_right = speed;
+            dir_rightFront = dir_rightBack   = 0;
+            dir_leftFront = dir_leftBack   = 0;
+        }
 
-    
-        
-    if(Mode == Speed){
-        rob.motorSetSpeed(1, speed_left);
-        rob.motorSetSpeed(2, speed_left);
-        rob.motorSetSpeed(3, speed_left);
-        rob.motorSetSpeed(4, speed_right);
-        // ROS_INFO("Set HubMotor:speed = [%f],[%f]", speed_left, speed_right);
+        if(Mode == Speed){
+            rob.motorSetSpeed(1, speed_left);
+            rob.motorSetSpeed(2, speed_left);
+            rob.motorSetSpeed(3, speed_left);
+            rob.motorSetSpeed(4, speed_right);
+            // ROS_INFO("Set HubMotor:speed = [%f],[%f]", speed_left, speed_right);
+        }
+        rob.stepMotorSetPosition(5, dir_leftFront);
+        rob.stepMotorSetPosition(6, dir_leftBack);
+        rob.stepMotorSetPosition(7, dir_rightFront);
+        rob.stepMotorSetPosition(8, dir_rightBack);
+        ROS_DEBUG("AGV 阿克曼运动 %f %f", speed, dir);
     }
-    rob.stepMotorSetPosition(5, dir_leftFront);
-    rob.stepMotorSetPosition(6, dir_leftBack);
-    rob.stepMotorSetPosition(7, dir_rightFront);
-    rob.stepMotorSetPosition(8, dir_rightBack);
-    // ROS_INFO("Set StepMotor:position = [%f],[%f],[%f],[%f]", dir_leftFront, dir_leftBack, dir_rightFront, dir_rightBack);
+    else if(AGV_HandleRunMode == Skewing){
+        speed *= AGV_limits[0];
+        dir *= AGV_limits[1];
+        if(speed > AGV_states[0]){
+            AGV_states[0] += AGV_limits[2] / ControlHz;
+            if(AGV_states[0] > speed)
+                AGV_states[0] = speed;
+        }
+        else if(speed < AGV_states[0]){
+            AGV_states[0] -= AGV_limits[2] / ControlHz;
+            if(AGV_states[0] < speed)
+                AGV_states[0] = speed;
+        }
+        speed = AGV_states[0];
+
+        if(dir > AGV_states[1]){
+            AGV_states[1] += AGV_limits[3] / ControlHz;
+            if(AGV_states[1] > dir)
+                AGV_states[1] = dir;
+        }
+        else if(dir < AGV_states[1]){
+            AGV_states[1] -= AGV_limits[3] / ControlHz;
+            if(AGV_states[1] < dir)
+                AGV_states[1] = dir;
+        }
+        dir = AGV_states[1];
+        if(Mode == Speed){
+            rob.motorSetSpeed(1, speed);
+            rob.motorSetSpeed(2, speed);
+            rob.motorSetSpeed(3, speed);
+            rob.motorSetSpeed(4, speed);
+            // ROS_INFO("Set HubMotor:speed = [%f],[%f]", speed_left, speed_right);
+        }
+        rob.stepMotorSetPosition(5, dir);
+        rob.stepMotorSetPosition(6, dir);
+        rob.stepMotorSetPosition(7, dir);
+        rob.stepMotorSetPosition(8, dir);
+        ROS_DEBUG("AGV 斜移运动 %f %f", speed, dir);
+    }
+    else if(AGV_HandleRunMode == Spin){
+        speed = dir * AGV_limits[0];
+        if(Mode == Speed){
+            rob.motorSetSpeed(1, speed);
+            rob.motorSetSpeed(2, speed);
+            rob.motorSetSpeed(3, speed);
+            rob.motorSetSpeed(4, speed);
+            // ROS_INFO("Set HubMotor:speed = [%f],[%f]", speed_left, speed_right);
+        }
+        rob.stepMotorSetPosition(5, 3.1415926535/4*3);
+        rob.stepMotorSetPosition(6, -3.1415926535/4*3);
+        rob.stepMotorSetPosition(7, 3.1415926535/4);
+        rob.stepMotorSetPosition(8, -3.1415926535/4);
+        ROS_DEBUG("AGV 自旋运动 %f", speed);
+    }
 }
 
 // AGV 模式切换
@@ -417,11 +479,11 @@ int main(int argc, char* argv[])
         // 程序控制
         if(AGV_Control_Mode == AGV_Control_Procedure){
             // 电机模式设置
-            if(AgvCommond[0] != Maintain){
-                // ROS_INFO("开始切换模式");
-                // Mode = AgvCommond[0];
-                motorModeSet(AgvCommond[0]);
-            }
+            // if(AgvCommond[0] != Maintain){
+            //     // ROS_INFO("开始切换模式");
+            //     // Mode = AgvCommond[0];
+            //     motorModeSet(AgvCommond[0]);
+            // }
             if(Mode == Speed){
                 rob.motorSetSpeed(1, AgvCommond[1]);
                 rob.motorSetSpeed(2, AgvCommond[2]);
@@ -449,8 +511,12 @@ int main(int argc, char* argv[])
         // 手柄控制
         else if(AGV_Control_Mode == AGV_Control_Handle){
             // 电机模式设置
+
             if(HandleKey[A] == 1){
-                motorModeSet(Speed);
+                if(Mode == Speed)
+                    motorModeSet(Disability);
+                else
+                    motorModeSet(Speed);
                 while(true){
                     delay_rate.sleep();
                     ros::spinOnce();
@@ -458,8 +524,10 @@ int main(int argc, char* argv[])
                         break;
                 }
             }
+
             if(HandleKey[B] == 1){
-                motorModeSet(Disability);
+                AGV_HandleRunMode = Ackermann;
+                ROS_INFO("切换成阿克曼");
                 while(true){
                     delay_rate.sleep();
                     ros::spinOnce();
@@ -467,6 +535,28 @@ int main(int argc, char* argv[])
                         break;
                 }
             }
+            if(HandleKey[X] == 1){
+                AGV_HandleRunMode = Skewing;
+                ROS_INFO("切换成斜移");
+                while(true){
+                    delay_rate.sleep();
+                    ros::spinOnce();
+                    if(HandleKey[X] == 0)
+                        break;
+                }
+            }
+            if(HandleKey[Y] == 1){
+                AGV_HandleRunMode = Spin;
+                ROS_INFO("切换成自旋");
+                while(true){
+                    delay_rate.sleep();
+                    ros::spinOnce();
+                    if(HandleKey[Y] == 0)
+                        break;
+                }
+            }
+            
+            // 修改速度极限
             if(HandleRocker[KX] > 0.5){
                 while(true){
                     delay_rate.sleep();
@@ -512,9 +602,11 @@ int main(int argc, char* argv[])
                 if(AGV_limits[1] < 10./180*EIGEN_PI)
                     AGV_limits[1] = 10./180*EIGEN_PI;
             }
-            AGV_Control(HandleRocker[LX] * AGV_limits[0], HandleRocker[RY] * AGV_limits[1]);
-            ROS_DEBUG("AGV 运动状态 %f %f", HandleRocker[LX] * AGV_limits[0], HandleRocker[RY] * AGV_limits[1]);
+
+            AGV_Control(HandleRocker[LX], HandleRocker[RY]);
+            
             // ROS_INFO("--------------------------------------------------\r\n");
+            
         }
         
         // ROS_INFO("--------------------------------------------------\r\n\r\n");
