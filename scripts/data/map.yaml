@@ -1,0 +1,8 @@
+image: /home/wulong/kailun_project_2023-07-11/ws_octomap/map.pgm
+resolution: 0.050000
+origin: [-28.150000, -8.000000, -nan]
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.196
+#-0.237937 -0.118829 2.87321
+#origin: [-28.150000, -8.000000, -nan]

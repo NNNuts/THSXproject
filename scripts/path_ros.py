@@ -10,9 +10,12 @@ from std_msgs.msg import Float32MultiArray
 rospy.init_node("path_planner")
 # read start and goal from ros topic /start_goal
 subscriber_name = "/start_goal"
-publisher_name = "/path"
+publisher_name = "/Path"
 pgm_file = rospy.get_param('~pgm')
 yaml_file = rospy.get_param('~yaml')
+
+#pgm_file = "data/map.pgm"
+#yaml_file = "data/map.yaml"
 round_max = (
     10  # Maximum number of iterations, 10 is enough, 因为每次都是随机的，所以多次迭代，可以确保找到一条路径
 )
@@ -35,6 +38,7 @@ def rrt_callback(msg, publisher):
     x_start = (x_start / env.resolution).astype(int)
     x_goal = (x_goal / env.resolution).astype(int)
     print(f"x_start: {x_start}\nx_goal: {x_goal}")
+    print("origin = ", origin)
     rrt = RRT(env, x_start, x_goal, step=step)
     path = rrt.planning(iter_max=iter_max, round_max=round_max)
     # publish path, [num_of_points, p1_x, p1_y, p2_x, p2_y, ...]
@@ -49,7 +53,7 @@ def rrt_callback(msg, publisher):
     rospy.spin()
 
 
-publisher = rospy.Publisher("path", Float32MultiArray, queue_size=1)
+publisher = rospy.Publisher(publisher_name, Float32MultiArray, queue_size=1)
 
 
 start_goal_sub = rospy.Subscriber(

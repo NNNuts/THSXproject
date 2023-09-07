@@ -33,18 +33,18 @@ class RRT:
             self.kdtree = KDTree([[self.start.x, self.start.y]])
             count = 0
             while count < iter_max:
-                # print(count)
+                #print(count)
                 rnd_node = self.get_random_node()  # a node in moveable space or goal
                 nearest_node = self.get_nearest_node(rnd_node)
                 if nearest_node.x == rnd_node.x and nearest_node.y == rnd_node.y:
+                    #print("continue 1")
                     continue
                 new_node = self.steer(nearest_node, rnd_node, self.step)
-                if self.env.is_in_obstacle(
-                    new_node.x, new_node.y
-                ) or self.env.is_cross_obstacle(
-                    nearest_node.x, nearest_node.y, new_node.x, new_node.y
-                ):
+                if self.env.is_in_obstacle(new_node.x, new_node.y) or self.env.is_cross_obstacle(nearest_node.x, nearest_node.y, new_node.x, new_node.y):
+                    #print("continue 2")
                     continue
+                                   
+
                 count += 1
                 if count % 100 == 0:
                     print(f"round: {round}, iter: {count}")

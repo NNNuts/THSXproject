@@ -123,7 +123,7 @@ class Environment:
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
-    env = Environment("./data/map_car-park.pgm", "./data/map_car-park.yaml")
+    env = Environment("./data/map.pgm", "./data/map.yaml")
     # draw the map
 
     # the size of the map

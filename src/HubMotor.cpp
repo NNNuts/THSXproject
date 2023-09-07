@@ -301,21 +301,7 @@ void AGV_Mode_Switching(void){
             AGV_Control_Mode = AGV_Control_Procedure;
             ROS_INFO("切换为程序控制");
         }
-        // AGV_states[0] = 0;
-        // AGV_states[1] = 0;
         AGV_Control(0, 0);
-        // AGVControlReset();
-        // if(Mode == Speed){
-        //     rob.motorSetSpeed(1, 0);
-        //     rob.motorSetSpeed(2, 0);
-        //     rob.motorSetSpeed(3, 0);
-        //     rob.motorSetSpeed(4, 0);
-        //     // ROS_INFO("Set HubMotor:speed = [%f],[%f],[%f],[%f]", AgvCommond[1], AgvCommond[2], AgvCommond[3], AgvCommond[4]);
-        // }
-        // rob.stepMotorSetPosition(5, 0);
-        // rob.stepMotorSetPosition(6, 0);
-        // rob.stepMotorSetPosition(7, 0);
-        // rob.stepMotorSetPosition(8, 0);
         while(true){
             delay_rate.sleep();
             ros::spinOnce();
