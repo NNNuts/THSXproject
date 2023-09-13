@@ -15,6 +15,8 @@
 #include <pthread.h>
 #include <condition_variable>
 #include <mutex>
+#include "HubMotor_pkg/PID.hpp"
+#include "HubMotor_pkg/serialPort/SerialPort.h"
 
 
 #define msleep(ms)  usleep((ms)*1000)
@@ -382,14 +384,10 @@ ros::Publisher AgvOdometerSpeed_pub;
 int main(int argc, char* argv[])
 {
     ros::init(argc, argv, "Agv");  //解析参数，命名结点
-    
-
     //创建全局句柄，实例化node
     ros::NodeHandle nh;  
-
     //创建局部句柄，实例化node
     ros::NodeHandle nhPart("~");  
-
 
     // 设置ROS_INFO中文输出
     setlocale(LC_ALL, "");
@@ -405,6 +403,15 @@ int main(int argc, char* argv[])
 
     // cout<<AGVDataPubEnable<<endl;
     // cout<<AGVEncoderOdomPubEnable<<endl;
+
+    // 宇树电机相关
+    // SerialPort  serial("/dev/ttyUSB0");
+    // MotorCmd    cmd;
+    // MotorData   data;
+    // double angle;
+    // double change = 0.3;
+
+
   
     rob.canOpen();
 
@@ -434,6 +441,42 @@ int main(int argc, char* argv[])
 
     AGV_Control_Mode = AGV_Control_Procedure;
     while(true){
+        
+        // 宇树电机相关
+        // angle += change;
+        // if(angle > 3.1415926 * 6.33){
+        //     angle = 3.1415926 * 6.33;
+        //     change = -0.3;
+        // }
+        // else if(angle < 0){
+        //     angle = 0;
+        //     change = +0.3;
+        // }
+        // cmd.motorType = MotorType::GO_M8010_6;
+        // // cmd.id    = 1;
+        // cmd.mode  = 1;
+        // cmd.K_P   = 0.3;
+        // cmd.K_W   = 0.01;
+        // cmd.Pos   = angle;
+        // cmd.W     = 0;
+        // cmd.T     = 0.00;
+        // for(int id=1;id<=3;id++){
+        //     cmd.id    = id;
+        //     serial.sendRecv(&cmd,&data);
+        //     // if(data.correct == true){
+        //     //     std::cout <<  std::endl;
+        //     //     std::cout <<  "motor.id: "     << cmd.id      << std::endl;
+        //     //     std::cout <<  "motor.Pos: "    << data.Pos    << " rad" << std::endl;
+        //     //     std::cout <<  "motor.Temp: "   << data.Temp   << " ℃"  << std::endl;
+        //     //     std::cout <<  "motor.W: "      << data.W      << " rad/s"<<std::endl;
+        //     //     std::cout <<  "motor.T: "      << data.T      << " N.m" << std::endl;
+        //     //     std::cout <<  "motor.MError: " << data.MError <<  std::endl;
+        //     //     std::cout <<  std::endl;
+        //     // }
+        // }
+        
+
+
         // AGV 模式切换
         AGV_Mode_Switching();
 

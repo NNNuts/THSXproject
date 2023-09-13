@@ -102,6 +102,7 @@ target_link_libraries(control_mode5
 target_link_libraries(HubMotor 
  ${catkin_LIBRARIES}
  libpthread.so
+ libUnitreeMotorSDK_M80106_Linux64.so
  #libcontrolcan.so 
  #${PROJECT_SOURCE_DIR}/lib/lib_emuc2_64.a
 )
