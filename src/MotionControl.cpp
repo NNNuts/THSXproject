@@ -48,23 +48,40 @@ double AGV_control_state[2] = {0, 0};
 // 设置路径目标点
 double PathGoal[2] = {10, 12};
 
-
 // 设置路径点
-double Path[100][2] = {0, 0,
-                        0.14, -2.70,
-                        0.14, -2.70,
-                        1.91, -0.62,
-                        3.38,  0.54,
-                        5.07, -0.68,
-                        6.73, -2.09,
-                        8.97, -2.67,
-                        9.71, -1.74,
-                        6.79, -1.28,
-                        3.53, -1.20,
-                        0.14, -2.70}; 
+// double Path[100][2] = { 0, 0,
+//                         4, 0,
+//                         4, 3,
+//                         7, 3,
+//                         8, 2,
+//                        10, 1,
+//                        13, 1,
+//                        12, 5,
+//                         6, 4,
+//                         3, 2,
+//                         0, 0,
+//                         }; 
                         
-// 路径点数
-int PathNum = 11;
+// // 路径点数
+// int PathNum = 10;
+
+// // 设置路径点
+// double Path[100][2] = {0, 0,
+//                         // 0.14, -2.70,
+//                         // 0.14, -2.70,
+//                         1.91, -0.62,
+//                         3.38,  0.54,
+//                         5.07, -0.68,
+//                         6.73, -2.09,
+//                         8.97, -2.67,
+//                         9.71, -1.74,
+//                         6.79, -1.28,
+//                         3.53, -1.20,
+//                         // 0.14, -2.70
+//                         }; 
+                        
+// // 路径点数
+// int PathNum = 8;
 
 // // 设置路径点
 // double Path[100][2] = {0, 0,
@@ -88,7 +105,7 @@ int PathNum = 11;
 // int PathNum = 15;
 
 // // 设置路径点
-// double Path[100][2] = {0, 0,
+// double Path[100][2] = { 0, 0,
 //                         0.13, -1.21,
 //                         2.49, -0.33,
 //                         3.84,  1.55,
@@ -108,8 +125,42 @@ int PathNum = 11;
 // // 路径点数
 // int PathNum = 15;
 
+// // 设置路径点
+double Path[100][2] = { 0, 0,
+                        0.672537, -2.6005,
+                        2.06838, -1.64437, 
+                        3.51479, -0.524376,
+                        4.60231, 1.35237,
+                        5.95491, 2.59055,
+                        7.52865, 2.7031,
+                        9.40416, 2.61769,
+                        10.964, 1.80552, 
+                        11.4356, 0.644309, 
+                        11.1717, -1.02511, 
+                        10.0852, -1.96958, 
+                        7.95116, -1.91122, 
+                        5.39523, -1.52858, 
+                        2.92965, -1.61181, 
+                        0.840819, -2.85833, 
+                        0.578524, -4.22789, 
+                        -0.361215, -4.51916,
+                        -0.922639, -4.79515, 
+                        -2.1043, -6.11061, 
+                        -2.18154, -7.5267, 
+                        -2.26941, -8.7383, 
+                        -2.1043, -6.11061, 
+                        -1.90307, -6.10613, 
+                        -0.748428, -4.85524, 
+                        -0.470572, -4.26269,
+                        0.329268, -3.20783,
+                        0.672537, -2.6005,
+                       }; 
+                        
+// 路径点数
+int PathNum = 27;
+
 // 路径速度
-double PathSpeed = 0.3;
+double PathSpeed = 0.25;
 
 // 路径时间
 double PathTime = 0;
@@ -211,6 +262,7 @@ void LidarOdoCallback(const nav_msgs::Odometry::ConstPtr& msg){
     // AGV_states[0] = 0;
     AGV_states[0] = msg->pose.pose.position.x;
     AGV_states[1] = msg->pose.pose.position.y;
+    ROS_INFO("雷达回调位置为：%f, %f", AGV_states[0], AGV_states[1]);
 
 //     AGV_states[1] = 0;
     // AGV_states[2] = eulerAngle[0];
@@ -349,9 +401,10 @@ void CalAGVERR(void)
         AGV_ERR[1] -= 2*EIGEN_PI;
     else if(AGV_ERR[1] < -EIGEN_PI)
         AGV_ERR[1] += 2*EIGEN_PI;
+
     // 判断是否需要倒车
-    if(AGV_ERR[1] > EIGEN_PI/2 || AGV_ERR[1] < -EIGEN_PI/2)
-        AGV_ERR[0] = -AGV_ERR[0];
+    // if(AGV_ERR[1] > EIGEN_PI/2 || AGV_ERR[1] < -EIGEN_PI/2)
+    //     AGV_ERR[0] = -AGV_ERR[0];
 
 }
 
@@ -377,6 +430,11 @@ void judgeAGVState(void)
         if(fabs(AGV_ERR[0]) < End_position_accuracy){
             AGV_Move_State = AGV_Move_Stop;
             Path_State = Path_State_Stop;
+
+            // 连续运行
+            Path[0][0] = AGV_states[0];
+            Path[0][1] = AGV_states[1];
+            pathInit();
         }
     }
 }
@@ -520,7 +578,9 @@ int main(int argc, char **argv)
     signal(SIGINT, MotionControlExit);
     AGV_control_pub = nh.advertise<std_msgs::Float32MultiArray>("AgvControl", 1000);
     // ros::Subscriber LidarOdo_sub = nh.subscribe("odom", 1000, LidarOdoCallback);
-    ros::Subscriber LidarOdo_sub = nh.subscribe("Odometry", 1000, LidarOdoCallback);
+    // ros::Subscriber LidarOdo_sub = nh.subscribe("Odometry", 1000, LidarOdoCallback);
+    ros::Subscriber LidarOdo_sub = nh.subscribe("global_localization", 1000, LidarOdoCallback);
+    
     
     ros::Subscriber Path_sub = nh.subscribe("Path", 1000, PathResiveCallBack);
     ros::Publisher PathGoalSet_pub = nh.advertise<std_msgs::Float32MultiArray>("start_goal", 1000);
