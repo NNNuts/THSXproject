@@ -6,6 +6,7 @@
 #include <Eigen/Dense>
 #include <signal.h>
 #include <HubMotor_pkg/PID.hpp>
+
 using namespace std;
 using namespace Eigen;
 
@@ -612,6 +613,23 @@ void PathResiveCallBack(std_msgs::Float32MultiArray::ConstPtr msg)
     }
 }
 
+// // 宇树电机相关
+// SerialPort  serial("/dev/ttyUSB0");
+// MotorCmd    cmd;
+// MotorData   data;
+
+// void setUnitreeMotor(int ID,double rad){
+//     cmd.motorType = MotorType::GO_M8010_6;
+//     cmd.id    = ID;
+//     cmd.mode  = 1;
+//     cmd.K_P   = 0.3;
+//     cmd.K_W   = 0.01;
+//     cmd.Pos   = rad * 6.33;
+//     cmd.W     = 0;
+//     cmd.T     = 0.00;
+//     serial.sendRecv(&cmd,&data);
+// }
+
 
 // 主程序
 int main(int argc, char **argv)
@@ -632,9 +650,11 @@ int main(int argc, char **argv)
     // ros::Subscriber LidarOdo_sub = nh.subscribe("Odometry", 1000, LidarOdoCallback);
     ros::Subscriber LidarOdo_sub = nh.subscribe("global_localization", 1000, LidarOdoCallback);
     
-    
     ros::Subscriber Path_sub = nh.subscribe("Path", 1000, PathResiveCallBack);
     ros::Publisher PathGoalSet_pub = nh.advertise<std_msgs::Float32MultiArray>("start_goal", 1000);
+
+    
+
 
     AGV_Move_State = AGV_Move_Stop;
     Path_State     = Path_State_Stop;
