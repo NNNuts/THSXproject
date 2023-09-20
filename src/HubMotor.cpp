@@ -131,21 +131,21 @@ enum AGVControlMode{
 }AGV_Control_Mode;
 
 // 宇树电机相关
-SerialPort  serial("/dev/ttyUSB0");
-MotorCmd    cmd;
-MotorData   dataBack;
+// SerialPort  serial("/dev/ttyUSB0");
+// MotorCmd    cmd;
+// MotorData   dataBack;
 
-void setUnitreeMotor(int ID,double rad){
-    cmd.motorType = MotorType::GO_M8010_6;
-    cmd.id    = ID;
-    cmd.mode  = 1;
-    cmd.K_P   = 0.3;
-    cmd.K_W   = 0.01;
-    cmd.Pos   = rad * 6.33;
-    cmd.W     = 0;
-    cmd.T     = 0.00;
-    serial.sendRecv(&cmd,&dataBack);
-}
+// void setUnitreeMotor(int ID,double rad){
+//     cmd.motorType = MotorType::GO_M8010_6;
+//     cmd.id    = ID;
+//     cmd.mode  = 1;
+//     cmd.K_P   = 0.3;
+//     cmd.K_W   = 0.01;
+//     cmd.Pos   = rad * 6.33;
+//     cmd.W     = 0;
+//     cmd.T     = 0.00;
+//     serial.sendRecv(&cmd,&dataBack);
+// }
 
 void HubMotorCallback(const std_msgs::Float32MultiArray::ConstPtr& msg){
     // cout<<"ok"<<endl;
@@ -312,9 +312,9 @@ void AGV_Control(double speed, double dir){
         rob.stepMotorSetPosition(8, dir_rightBack);
 
         // 宇树电机
-        setUnitreeMotor(1,dir_leftFront);
-        setUnitreeMotor(2,dir_leftFront);
-        setUnitreeMotor(3,dir_leftFront);
+        // setUnitreeMotor(1,dir_leftFront);
+        // setUnitreeMotor(2,dir_leftFront);
+        // setUnitreeMotor(3,dir_leftFront);
         ROS_DEBUG("AGV 阿克曼运动 %f %f", speed, dir);
     }
     else if(AGV_HandleRunMode == Skewing){
@@ -356,9 +356,9 @@ void AGV_Control(double speed, double dir){
         rob.stepMotorSetPosition(8, dir);
 
         // 宇树电机
-        setUnitreeMotor(1,dir);
-        setUnitreeMotor(2,dir);
-        setUnitreeMotor(3,dir);
+        // setUnitreeMotor(1,dir);
+        // setUnitreeMotor(2,dir);
+        // setUnitreeMotor(3,dir);
         ROS_DEBUG("AGV 斜移运动 %f %f", speed, dir);
     }
     else if(AGV_HandleRunMode == Spin){
@@ -375,9 +375,9 @@ void AGV_Control(double speed, double dir){
         rob.stepMotorSetPosition(7, 3.1415926535/4);
         rob.stepMotorSetPosition(8, -3.1415926535/4);
         // 宇树电机
-        setUnitreeMotor(1,3.1415926535/4*3);
-        setUnitreeMotor(2,-3.1415926535/4*3);
-        setUnitreeMotor(3,3.1415926535/4);
+        // setUnitreeMotor(1,3.1415926535/4*3);
+        // setUnitreeMotor(2,-3.1415926535/4*3);
+        // setUnitreeMotor(3,3.1415926535/4);
         ROS_DEBUG("AGV 自旋运动 %f", speed);
     }
 }
