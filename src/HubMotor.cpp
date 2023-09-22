@@ -119,7 +119,7 @@ enum HandleAxes{
 double HandleRocker[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
 // AGV 手柄运动限制
-double AGV_limits[6] = {0.2, 30./180*EIGEN_PI, 0.5, 10./180*EIGEN_PI, 1, 60./180*EIGEN_PI};
+double AGV_limits[6] = {0.2, 30./180*EIGEN_PI, 1, 20./180*EIGEN_PI, 1, 60./180*EIGEN_PI};
 
 // AGV 手柄运动状态
 double AGV_states[2] = {0, 0};
@@ -472,6 +472,12 @@ int main(int argc, char* argv[])
     ros::Subscriber sub = nh.subscribe("AgvControl", 1000, HubMotorCallback);
 
     AGV_Control_Mode = AGV_Control_Procedure;
+
+    // auto  tp_1 = std::chrono::steady_clock::now();
+    // auto  tp_2 = std::chrono::steady_clock::now();
+    // auto track_time = std::chrono::duration_cast<std::chrono::duration<double>>(tp_2- tp_1).count();
+    // std::cout << "time:" << track_time << "s" << std::endl;
+
     while(true){
         
         // 宇树电机相关
@@ -506,6 +512,7 @@ int main(int argc, char* argv[])
         //     //     std::cout <<  std::endl;
         //     // }
         // }
+        
         
 
 
@@ -550,7 +557,7 @@ int main(int argc, char* argv[])
             odometerPosition[0], odometerPosition[1], odometerPosition[2], odometerPosition[3], odometerPosition[4], odometerPosition[5]);
         }
         
-
+        
         // 程序控制
         if(AGV_Control_Mode == AGV_Control_Procedure){
             // 电机模式设置
@@ -577,12 +584,16 @@ int main(int argc, char* argv[])
             rob.stepMotorSetPosition(5, AgvCommond[5]);
             rob.stepMotorSetPosition(6, AgvCommond[6]);
             rob.stepMotorSetPosition(7, AgvCommond[7]);
+            // tp_1 = std::chrono::steady_clock::now();
             rob.stepMotorSetPosition(8, AgvCommond[8]);
+            // tp_2 = std::chrono::steady_clock::now();
+            // track_time = std::chrono::duration_cast<std::chrono::duration<double>>(tp_2- tp_1).count();
+            // std::cout << "time:" << track_time << "s" << std::endl;
             ROS_DEBUG("Set StepMotor:position = [%f],[%f],[%f],[%f]", AgvCommond[5], AgvCommond[6], AgvCommond[7], AgvCommond[8]);
 
             // ROS_INFO("--------------------------------------------------\r\n");
+            
         }
-
         // 手柄控制
         else if(AGV_Control_Mode == AGV_Control_Handle){
             // 电机模式设置

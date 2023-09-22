@@ -25,7 +25,7 @@ private:
 public:
     // VCI_CAN_OBJ canData[100];
     // int canDataNum = 0;
-    int CanSendSleep = 50000;//50ms
+    int CanSendSleep = 1000;//50ms
 
 
     void canOpen(void);
