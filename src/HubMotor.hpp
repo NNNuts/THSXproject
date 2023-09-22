@@ -12,6 +12,8 @@
 #include <linux/can/raw.h>
 #include <unistd.h>
 
+#include <HubMotor_pkg/Can2Usb2.0.h>
+
 using namespace Eigen;
 using namespace std;
 enum
@@ -20,7 +22,7 @@ enum
     PositionMod
 };
 
-class HubMotor
+class HubMotor : public CAN2USB
 {
 private:
 public:
@@ -46,42 +48,7 @@ public:
     double stepMotorRealPosition[8] = {100, 100, 100, 100, 100, 100, 100, 100};
     double hubMotorRealSpeed[8] = {100, 100, 100, 100, 100, 100, 100, 100};
 
-    // void *can0_get_status(void){
-    //     pthread_detach(pthread_self());
-    //     int err;
-    //     while(true){
-            
-    //         if(CanReadDataNum[0]>=CanReadDataNumMax)
-    //             CanReadDataNum[0] = 0;
-    //         // cout<<num<<endl;
-    //         err = read(can_fd[0], &CanReadData[0][CanReadDataNum[0]], sizeof(CanReadData[0][CanReadDataNum[0]]));
-    //         CanReadDataNum[0] ++;
-    //    }
-    // }
-
-    // static void* staticCan0_get_status(void *param){
-    //     HubMotor* pThis = (HubMotor*)param;
-    //     pThis->can0_get_status();
-    // }
-
-    // void *can1_get_status(void){
-    //     pthread_detach(pthread_self());
-    //     int err;
-    //     while(true){
-            
-    //         if(CanReadDataNum[1]>=CanReadDataNumMax)
-    //             CanReadDataNum[1] = 0;
-    //         // cout<<num<<endl;
-    //         err = read(can_fd[1], &CanReadData[1][CanReadDataNum[1]], sizeof(CanReadData[1][CanReadDataNum[1]]));
-    //         CanReadDataNum[1] ++;
-    //         }
-    // }
-
-    // static void* staticCan1_get_status(void *param){
-    //     HubMotor* pThis = (HubMotor*)param;
-    //     pThis->can1_get_status();
-    // }
-
+    
     void *can0_get_status(void);
 
     static void* staticCan0_get_status(void *param);
@@ -90,65 +57,99 @@ public:
 
     static void* staticCan1_get_status(void *param);
 
-    void canOpen(void){
-        can_fd[0] = socket(AF_CAN, SOCK_RAW, CAN_RAW);
-        can_fd[1] = socket(AF_CAN, SOCK_RAW, CAN_RAW);
-        if(can_fd < 0)
-        {
-            perror("socket can creat error!\n");
-            exit(0);
-        }
-        struct ifreq ifr;  // if.h
-        strcpy(ifr.ifr_name, "can0");
-        ioctl(can_fd[0], SIOCGIFINDEX, &ifr); // 指定编号为 can0 的设备，获取设备索引
-        
-    
-        struct sockaddr_can addr;
-        addr.can_family = AF_CAN;  // 指定协议族
-        addr.can_ifindex = ifr.ifr_ifindex;  // 设备索引
-        // 将套接字与 can0 绑定
-        int bind_res = bind(can_fd[0], (struct sockaddr *)&addr, sizeof(addr));
-        if(bind_res < 0)
-        {
-            perror("bind error!");
-            exit(0);
-        }
-
-        strcpy(ifr.ifr_name, "can1");
-        ioctl(can_fd[1], SIOCGIFINDEX, &ifr); // 指定编号为 can0 的设备，获取设备索引
-        addr.can_ifindex = ifr.ifr_ifindex;  // 设备索引
-
-        // 将套接字与 can0 绑定
-        bind_res = bind(can_fd[1], (struct sockaddr *)&addr, sizeof(addr));
-        if(bind_res < 0)
-        {
-            perror("bind error!");
-            exit(0);
-        }
-
-        int loopback = 0; //0 表示关闭，1 表示开启(默认) 
-        setsockopt(can_fd[0], SOL_CAN_RAW, CAN_RAW_LOOPBACK, &loopback, sizeof(loopback));
-        setsockopt(can_fd[1], SOL_CAN_RAW, CAN_RAW_LOOPBACK, &loopback, sizeof(loopback));
-
-        pthread_t threads;
-        int rc;
-        long fd;
-        fd = can_fd[0];
-        rc = pthread_create(&threads, NULL, staticCan0_get_status, (void *)this);
-        fd = can_fd[1];
-        rc = pthread_create(&threads, NULL, staticCan1_get_status, (void *)this);
-
-        cout<<"Can Open success"<<endl;
-    }
-
-
     void canClean(int com){
         CanReadDataNum[com] = 0;
     }
 
-    void canSend(int com, int ID, int Len, long data, unsigned long pass = 0){
-        struct can_frame frame;
+    // 临时注释
+    // -----------------------------------------------------------------
 
+    // void canOpen(void){
+    //     can_fd[0] = socket(AF_CAN, SOCK_RAW, CAN_RAW);
+    //     can_fd[1] = socket(AF_CAN, SOCK_RAW, CAN_RAW);
+    //     if(can_fd < 0)
+    //     {
+    //         perror("socket can creat error!\n");
+    //         exit(0);
+    //     }
+    //     struct ifreq ifr;  // if.h
+    //     strcpy(ifr.ifr_name, "can0");
+    //     ioctl(can_fd[0], SIOCGIFINDEX, &ifr); // 指定编号为 can0 的设备，获取设备索引
+        
+    
+    //     struct sockaddr_can addr;
+    //     addr.can_family = AF_CAN;  // 指定协议族
+    //     addr.can_ifindex = ifr.ifr_ifindex;  // 设备索引
+    //     // 将套接字与 can0 绑定
+    //     int bind_res = bind(can_fd[0], (struct sockaddr *)&addr, sizeof(addr));
+    //     if(bind_res < 0)
+    //     {
+    //         perror("bind error!");
+    //         exit(0);
+    //     }
+
+    //     strcpy(ifr.ifr_name, "can1");
+    //     ioctl(can_fd[1], SIOCGIFINDEX, &ifr); // 指定编号为 can0 的设备，获取设备索引
+    //     addr.can_ifindex = ifr.ifr_ifindex;  // 设备索引
+
+    //     // 将套接字与 can0 绑定
+    //     bind_res = bind(can_fd[1], (struct sockaddr *)&addr, sizeof(addr));
+    //     if(bind_res < 0)
+    //     {
+    //         perror("bind error!");
+    //         exit(0);
+    //     }
+
+    //     int loopback = 0; //0 表示关闭，1 表示开启(默认) 
+    //     setsockopt(can_fd[0], SOL_CAN_RAW, CAN_RAW_LOOPBACK, &loopback, sizeof(loopback));
+    //     setsockopt(can_fd[1], SOL_CAN_RAW, CAN_RAW_LOOPBACK, &loopback, sizeof(loopback));
+
+    //     pthread_t threads;
+    //     int rc;
+    //     long fd;
+    //     fd = can_fd[0];
+    //     rc = pthread_create(&threads, NULL, staticCan0_get_status, (void *)this);
+    //     fd = can_fd[1];
+    //     rc = pthread_create(&threads, NULL, staticCan1_get_status, (void *)this);
+
+    //     cout<<"Can Open success"<<endl;
+    // }
+    
+    // void canSend(int com, int ID, int Len, long data, unsigned long pass = 0){
+    //     struct can_frame frame;
+
+    //     long pass_new = 0;
+    //     for(int i = 0;i<4;i++)
+    //     {
+    //         pass_new *= 256;
+    //         pass_new += pass % 256;
+    //         pass /= 256;
+    //     }
+
+    //     for(int i = Len - 1; i >= 0; i--)
+    //     {
+    //         // canData[canDataNum].Data[i] = data % 256;
+    //         frame.data[i] = data % 256 + pass_new % 256; 
+    //         // cout<<i<<" "<<(int)canData[canDataNum].Data[i]<<" "<<data % 256<<endl;
+    //         data = data / 256;
+    //         pass_new = pass_new / 256;
+    //         // data > 2;
+    //     }
+    
+    //     /************ 写数据 ************/
+    //     frame.can_dlc = Len;  // 设置数据长度（CAN协议规定一帧最多有八个字节的有效数据）
+    //     frame.can_id = ID;    // 设置 ID 号，假设这里 ID 号为1，实际的 ID 号要根据是标准帧（11位）还是拓展帧（29）位来设置
+    //     write(can_fd[com], &frame, sizeof(frame));  // 写数据
+    //     usleep(sendSleep);
+    // }
+    // -----------------------------------------------------------------
+    void canSend(int com, int ID, int Len, long data, unsigned long pass = 0){
+        VCI_CAN_OBJ canData;
+        canData.ID         = ID;
+        canData.SendType   = 0;
+        canData.RemoteFlag = 0;
+        canData.ExternFlag = 0;
+        canData.DataLen    = Len;
         long pass_new = 0;
         for(int i = 0;i<4;i++)
         {
@@ -156,22 +157,28 @@ public:
             pass_new += pass % 256;
             pass /= 256;
         }
-
         for(int i = Len - 1; i >= 0; i--)
         {
-            // canData[canDataNum].Data[i] = data % 256;
-            frame.data[i] = data % 256 + pass_new % 256; 
-            // cout<<i<<" "<<(int)canData[canDataNum].Data[i]<<" "<<data % 256<<endl;
+            canData.Data[i] = data % 256 + pass_new % 256;
             data = data / 256;
             pass_new = pass_new / 256;
-            // data > 2;
         }
-    
-        /************ 写数据 ************/
-        frame.can_dlc = Len;  // 设置数据长度（CAN协议规定一帧最多有八个字节的有效数据）
-        frame.can_id = ID;    // 设置 ID 号，假设这里 ID 号为1，实际的 ID 号要根据是标准帧（11位）还是拓展帧（29）位来设置
-        write(can_fd[com], &frame, sizeof(frame));  // 写数据
-        usleep(sendSleep);
+        VCI_Transmit(VCI_USBCAN2, 0, com, &canData, 1);
+        // sendNull();
+        // cout << "send data" << endl;
+        // printf("CAN TX ID:0x%08X", canData.ID);
+        // if(canData.ExternFlag==0) printf(" Standard ");
+        // if(canData.ExternFlag==1) printf(" Extend   ");
+        // if(canData.RemoteFlag==0) printf(" Data   ");
+        // if(canData.RemoteFlag==1) printf(" Remote ");
+        // printf("DLC:0x%02X",canData.DataLen);
+        // printf(" data:0x");
+        // for(int i = 0; i < canData.DataLen; i++)
+        // {
+        //     printf(" %02X", canData.Data[i]);
+        // }
+        // printf("\n");
+        usleep(CanSendSleep);
     }
 
     void motorInit(int ID,int mod){
