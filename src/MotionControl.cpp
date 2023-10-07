@@ -6,10 +6,12 @@
 #include <Eigen/Dense>
 #include <signal.h>
 #include <HubMotor_pkg/PID.hpp>
+#include <HubMotor_pkg/AGV_MotionControl.hpp>
 
 using namespace std;
 using namespace Eigen;
 
+/*
 // AGV运动模式
 enum AGVSportsMode{
     Maintain,
@@ -331,7 +333,7 @@ void LidarOdoCallback(const nav_msgs::Odometry::ConstPtr& msg){
     // AGV_states[0] = 0;
     AGV_states[0] = msg->pose.pose.position.x;
     AGV_states[1] = msg->pose.pose.position.y;
-    ROS_INFO("雷达回调位置为：%f, %f", AGV_states[0], AGV_states[1]);
+    // ROS_INFO("雷达回调位置为：%f, %f", AGV_states[0], AGV_states[1]);
 
 //     AGV_states[1] = 0;
     // AGV_states[2] = eulerAngle[0];
@@ -431,15 +433,18 @@ std_msgs::Float32MultiArray CotrolCal(void)
         
     }
     else if(AGV_Move_State == AGV_Move_Skewing){
+        
+        speed_left = speed_right = speed;
+        dir_leftFront = dir_leftBack   = dir_rightFront = dir_rightBack   = dir;
+    }
+    else if(AGV_Move_State == AGV_Move_Spin){
+        // std::cout<<"Spin"<<endl;
+        // std::cout<<dir_leftFront<<endl;
         speed_left = speed_right = speed;
         dir_leftFront = 3.1415926535/4*3;
         dir_leftBack = -3.1415926535/4*3;
         dir_rightFront = 3.1415926535/4;
         dir_rightBack = -3.1415926535/4;
-    }
-    else if(AGV_Move_State == AGV_Move_Spin){
-        speed_left = speed_right = speed;
-        dir_leftFront = dir_leftBack   = dir_rightFront = dir_rightBack   = dir;
     }
     else{
         speed_left = speed_right = 0;
@@ -453,6 +458,7 @@ std_msgs::Float32MultiArray CotrolCal(void)
         dir_rightFront = dir_rightBack   = 0;
         dir_leftFront = dir_leftBack    = 0;
     }
+    
     msg.data.push_back(Maintain);
     msg.data.push_back(speed_left);
     msg.data.push_back(speed_left);
@@ -627,10 +633,10 @@ void AGV_ConCal(void)
     {
         // desire_speed = SpeedPid.pid_control(AGV_ERR[0], 0);
         if(AGV_ERR[1] > 0){
-            desire_speed = 0.2;
+            desire_speed = 0.1;
         }
         else{
-            desire_speed = -0.2;
+            desire_speed = -0.1;
         }
         AGV_control_state[0] = desire_speed;
         
@@ -669,6 +675,36 @@ void PathResiveCallBack(std_msgs::Float32MultiArray::ConstPtr msg)
 //     serial.sendRecv(&cmd,&data);
 // }
 
+*/
+
+AGV_MotionControl AGV;
+
+//设置路径点
+double Path[100][2] = { 0, 0,
+                    0.154965, -2.77412, 
+                    1.24761, -3.60266, 
+                    2.69559, -2.95119, 
+                    3.62408, -1.54128, 
+                    5.58529, -1.64915, 
+                    6.98535, -2.14833, 
+                    9.03334, -2.25877, 
+                    10.7538, -1.59706, 
+                    11.2096, -0.487526, 
+                    11.3754, 0.768721, 
+                    11.0217, 1.7256, 
+                    9.2451, 2.64715, 
+                    7.28888, 2.82914, 
+                    5.6598, 2.68743, 
+                    4.67905, 2.16159, 
+                    3.84302, 1.47399, 
+                    3.02819, 0.313659, 
+                    1.70459, -0.0859179, 
+                    0.685601, -0.30961, 
+                    0.368457, -1.297, 
+                       }; 
+                        
+// 路径点数
+int PathNum = 20;
 
 // 主程序
 int main(int argc, char **argv)
@@ -678,31 +714,20 @@ int main(int argc, char **argv)
 
     //创建局部句柄，实例化node
     ros::NodeHandle nhPart("~");  
-    // Getting ROSParams
-    nhPart.getParam("goal_x", PathGoal[0]);
-    nhPart.getParam("goal_y", PathGoal[1]);
- 
-    setlocale(LC_ALL, "");
-    signal(SIGINT, MotionControlExit);
-    AGV_control_pub = nh.advertise<std_msgs::Float32MultiArray>("AgvControl", 1000);
-    // ros::Subscriber LidarOdo_sub = nh.subscribe("odom", 1000, LidarOdoCallback);
-    // ros::Subscriber LidarOdo_sub = nh.subscribe("Odometry", 1000, LidarOdoCallback);
-    ros::Subscriber LidarOdo_sub = nh.subscribe("global_localization", 1000, LidarOdoCallback);
-    
-    ros::Subscriber Path_sub = nh.subscribe("Path", 1000, PathResiveCallBack);
-    ros::Publisher PathGoalSet_pub = nh.advertise<std_msgs::Float32MultiArray>("start_goal", 1000);
 
-    
+    AGV.systemInit(nh, nhPart);
+    AGV.pathSet(PathNum,Path);
+    AGV.setPathFollowing_Strict(true);
+    AGV.run();
 
-
-    AGV_Move_State = AGV_Move_Stop;
-    Path_State     = Path_State_Stop;
-    ros::Rate delay_rate(1000);
-    ROS_INFO("等待AGV定位");
-    while(AGV_states[0]>5000 || AGV_states[1]>5000){
-        delay_rate.sleep();
-        ros::spinOnce();
-    }    
+    // AGV_Move_State = AGV_Move_Stop;
+    // Path_State     = Path_State_Stop;
+    // ros::Rate delay_rate(1000);
+    // ROS_INFO("等待AGV定位");
+    // while(AGV_states[0]>5000 || AGV_states[1]>5000){
+    //     delay_rate.sleep();
+    //     ros::spinOnce();
+    // }    
 
     // realTimePathPoint[0] = 0;
     // realTimePathPoint[1] = 0;
@@ -735,83 +760,100 @@ int main(int argc, char **argv)
     // } 
     // ROS_INFO("接收到路径");
 
-    Path[0][0] = AGV_states[0];
-    Path[0][1] = AGV_states[1];
-    pathInit();
+    AGV.pathInit();
+
     // 设置严格跟随模式
-    PathFollowingState = PathFollowing_Strict;
+    // AGV.PathFollowingState = AGV.PathFollowing_Strict;
+    // AGV.PathFollowingState = AGV.PathFollowing_Flesibility;
+    
 
     // ROS_INFO("Warning!");
     // ROS_INFO("运控启动");
-    ros::Rate loop_rate(ControlHz);
-    char ch;
-    for(int i=0;i<5;i++)
-        AGVControlReset(Speed);
+    // ros::Rate loop_rate(AGV.ControlHz);
+    // char ch;
+    // for(int i=0;i<5;i++)
+    //      AGVControlReset(Speed);
+    // std_msgs::Float32MultiArray msg;
+    // ros::Rate Delay_rate(10);
     
-    while (ros::ok()){
-        if(PathFollowingState = PathFollowing_Flesibility){
-            realTimePathPointCal();
-            CalAGVERR();
-            judgeAGVState();
-            AGV_ConCal();
-        }
-        else if(PathFollowingState = PathFollowing_Strict){
-            if(Path_State != Path_State_Stop){
-                if(!realTimePathPointNum ){
-                    realTimePathPointNum++;
-                    realTimePathPoint[0] = Path[realTimePathPointNum][0];
-                    realTimePathPoint[1] = Path[realTimePathPointNum][1];
-                }
-                if(AGV_Move_State == AGV_Move_Ackermann && sqrt(realTimePathPoint[0]*realTimePathPoint[0]+realTimePathPoint[1]*realTimePathPoint[1])<0.03)
-                {
-                    realTimePathPointNum++;
-                    if(realTimePathPointNum > PathNum){
-                        realTimePathPointNum = PathNum;
-                        Path_State = Path_State_Stop;
-                    }
-                    else{
-                        realTimePathPoint[0] = Path[realTimePathPointNum][0];
-                        realTimePathPoint[1] = Path[realTimePathPointNum][1];
-                        AGV_Move_State == AGV_Move_Spin;
-                        AGV_control_state[0] = 0;
-                        AGV_control_state[1] = 0;
-                        std_msgs::Float32MultiArray msg = CotrolCal();
-                        ros::Rate delay_rate(1);
-                        for(int i=0; i<3; i++){
-                            AGV_control_pub.publish(msg);
-                            delay_rate.sleep();
-                        }
-                    }
-                }
-                CalAGVERR(); 
-                if(AGV_Move_State == AGV_Move_Spin){
-                    if(AGV_ERR[1] < 0.05 && AGV_ERR[1] > -0.05){
-                        AGV_Move_State = AGV_Move_Ackermann;
-                        AGV_control_state[0] = 0;
-                        AGV_control_state[1] = 0;
-                        std_msgs::Float32MultiArray msg = CotrolCal();
-                        ros::Rate delay_rate(1);
-                        for(int i=0; i<3; i++){
-                            AGV_control_pub.publish(msg);
-                            delay_rate.sleep();
-                        }
-                    }   
-                }   
-                AGV_ConCal();
-            }
-        }
+    // while (ros::ok()){
+    //     if(PathFollowingState == PathFollowing_Flesibility){
+    //         realTimePathPointCal();
+    //         CalAGVERR();
+    //         judgeAGVState(); 
+    //         AGV_ConCal();
+    //         // ROS_INFO("PathTime %f", PathTime);
+    //     }
+    //     else if(PathFollowingState == PathFollowing_Strict){
+    //         // 连续运行
+    //         if(Path_State == Path_State_Stop){
+    //             Path[0][0] = AGV_states[0];
+    //             Path[0][1] = AGV_states[1];
+    //             pathInit();
+    //         }
+    //         if(Path_State != Path_State_Stop){
+    //             if(!realTimePathPointNum ){
+    //                 realTimePathPointNum++;
+    //                 realTimePathPoint[0] = Path[realTimePathPointNum][0];
+    //                 realTimePathPoint[1] = Path[realTimePathPointNum][1];
+    //             }
+    //             CalAGVERR();
+    //             // ROS_INFO("PathTime %f", PathTime);
+    //             if(AGV_Move_State == AGV_Move_Ackermann && sqrt(AGV_ERR[0]*AGV_ERR[0])<0.10)
+    //             {
+    //                 realTimePathPointNum++;
+    //                 if(realTimePathPointNum > PathNum){
+    //                     realTimePathPointNum = PathNum;
+    //                     Path_State = Path_State_Stop;
+                        
+    //                 }
+    //                 else{
+    //                     realTimePathPoint[0] = Path[realTimePathPointNum][0];
+    //                     realTimePathPoint[1] = Path[realTimePathPointNum][1];
+    //                     AGV_Move_State = AGV_Move_Spin;
+    //                     AGV_control_state[0] = 0;
+    //                     AGV_control_state[1] = 0;
+    //                     msg = CotrolCal();
+    //                     // ros::Rate delay_rate(10);
+    //                     for(int i=0; i<50; i++){
+    //                         AGV_control_pub.publish(msg);
+    //                         // std::cout<<msg.data.at(5)<<std::endl;
+    //                         ros::spinOnce(); 
+    //                         Delay_rate.sleep();
+    //                     }
+    //                 }
+    //             }
+    //             CalAGVERR(); 
+    //             if(AGV_Move_State == AGV_Move_Spin){
+    //                 if(AGV_ERR[1] < 0.02 && AGV_ERR[1] > -0.02){
+    //                     AGV_Move_State = AGV_Move_Ackermann;
+    //                     AGV_control_state[0] = 0;
+    //                     AGV_control_state[1] = 0;
+    //                     msg = CotrolCal();
+    //                     // ros::Rate delay_rate(10);
+    //                     for(int i=0; i<50; i++){
+    //                         AGV_control_pub.publish(msg);
+    //                         ros::spinOnce();
+    //                         Delay_rate.sleep();
+    //                     }
+    //                 }   
+    //             }   
+    //             AGV_ConCal();
+    //         }
+    //     }
 
-        std_msgs::Float32MultiArray msg = CotrolCal();
-        AGV_control_pub.publish(msg);
-        ROS_INFO("控制模式为: %d, %d", AGV_Move_State, Path_State);
-        ROS_INFO("当前位置为: %f, %f, %f", AGV_states[0], AGV_states[1], AGV_states[2]*180/3.1415);
-        if(Path_State != Path_State_Stop)
-            ROS_INFO("目标位置为: %f, %f", realTimePathPoint[0], realTimePathPoint[1]);
-        // ROS_INFO("control speed is: %f, angular is %f", AGV_control_state[0],AGV_control_state[1]*180/3.1415);
-        else if(Path_State == Path_State_Stop)
-            ROS_INFO("等待路径发布");
-        ros::spinOnce();
-        loop_rate.sleep();
-    }
+        
+    //     msg = CotrolCal();
+    //     AGV_control_pub.publish(msg);
+    //     // ROS_INFO("控制模式为: %d, %d", AGV_Move_State, Path_State);
+    //     ROS_INFO("当前位置为: %f, %f, %f", AGV_states[0], AGV_states[1], AGV_states[2]*180/3.1415);
+    //     if(Path_State != Path_State_Stop)
+    //         ROS_INFO("目标位置为: %f, %f", realTimePathPoint[0], realTimePathPoint[1]);
+    //     // ROS_INFO("control speed is: %f, angular is %f", AGV_control_state[0],AGV_control_state[1]*180/3.1415);
+    //     else if(Path_State == Path_State_Stop)
+    //         ROS_INFO("等待路径发布");
+    //     ros::spinOnce();
+    //     loop_rate.sleep();
+    // }
     return 0;
 }

@@ -3,7 +3,7 @@
 //位置式PID
 class PID
 {
-private:
+public:
     float kp;//比例系数
     float ki;//积分系数
     float kd;//微分系数
@@ -12,7 +12,6 @@ private:
     float e;//误差
     float e_pre;//上一次误差
     float integral;//积分项
-public:
     // PID();
     // ~PID(){};
     // PID(float p,float i,float d);
