@@ -709,15 +709,11 @@ int PathNum = 20;
 // 主程序
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "MotionControl");
-    ros::NodeHandle nh;
+    
 
-    //创建局部句柄，实例化node
-    ros::NodeHandle nhPart("~");  
-
-    AGV.systemInit(nh, nhPart);
+    AGV.systemInit(argc, argv);
     AGV.pathSet(PathNum,Path);
-    AGV.setPathFollowing_Strict(true);
+    AGV.setPathFollowing_Strict(true); // true 和 false 对应严格模式启动与关闭
     AGV.run();
 
     // AGV_Move_State = AGV_Move_Stop;
@@ -760,7 +756,7 @@ int main(int argc, char **argv)
     // } 
     // ROS_INFO("接收到路径");
 
-    AGV.pathInit();
+    // AGV.pathInit();
 
     // 设置严格跟随模式
     // AGV.PathFollowingState = AGV.PathFollowing_Strict;

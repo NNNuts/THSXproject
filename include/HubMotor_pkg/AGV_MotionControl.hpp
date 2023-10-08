@@ -294,7 +294,7 @@ public:
 
     ros::Publisher AGV_control_pub, PathGoalSet_pub;
     ros::Subscriber LidarOdo_sub, Path_sub;
-    ros::NodeHandle nh,nhPart;
+    // ros::NodeHandle nh,nhPart;
 
     // ros::Rate delay_rate(1000);
 
@@ -671,9 +671,14 @@ public:
     }
 
     // 系统初始化
-    void systemInit(ros::NodeHandle A, ros::NodeHandle B){
-        nh = A;
-        nhPart = B;
+    void systemInit(int argc, char **argv){
+        ros::init(argc, argv, "MotionControl");
+        ros::NodeHandle nh;
+
+        //创建局部句柄，实例化node
+        ros::NodeHandle nhPart("~");  
+        // nh = A;
+        // nhPart = B;
         SpeedPid.kp = PID_spd[0];
         SpeedPid.kp = PID_spd[1];
         SpeedPid.kp = PID_spd[2];
@@ -696,6 +701,7 @@ public:
         Path_State     = Path_State_Stop;
         PathFollowingState = PathFollowing_Flesibility;
         ros::Rate delay_rate(1000);
+        setlocale(LC_ALL, "");
         ROS_INFO("等待AGV定位");
         while(AGV_states[0]>5000 || AGV_states[1]>5000){
             delay_rate.sleep();

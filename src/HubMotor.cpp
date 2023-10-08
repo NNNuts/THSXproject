@@ -596,102 +596,107 @@ int main(int argc, char* argv[])
         }
         // 手柄控制
         else if(AGV_Control_Mode == AGV_Control_Handle){
-            // 电机模式设置
+            // ROS_INFO("RB: %f",HandleRocker[RB]);
+            if(HandleRocker[RB]<0){
+                // 电机模式设置
 
-            if(HandleKey[A] == 1){
-                if(Mode == Speed)
-                    motorModeSet(Disability);
-                else
-                    motorModeSet(Speed);
-                while(true){
-                    delay_rate.sleep();
-                    ros::spinOnce();
-                    if(HandleKey[A] == 0)
-                        break;
+                if(HandleKey[A] == 1){
+                    if(Mode == Speed)
+                        motorModeSet(Disability);
+                    else
+                        motorModeSet(Speed);
+                    while(true){
+                        delay_rate.sleep();
+                        ros::spinOnce();
+                        if(HandleKey[A] == 0)
+                            break;
+                    }
                 }
-            }
 
-            if(HandleKey[B] == 1){
-                AGV_HandleRunMode = Ackermann;
-                ROS_INFO("切换成阿克曼");
-                while(true){
-                    delay_rate.sleep();
-                    ros::spinOnce();
-                    if(HandleKey[B] == 0)
-                        break;
+                if(HandleKey[B] == 1){
+                    AGV_HandleRunMode = Ackermann;
+                    ROS_INFO("切换成阿克曼");
+                    while(true){
+                        delay_rate.sleep();
+                        ros::spinOnce();
+                        if(HandleKey[B] == 0)
+                            break;
+                    }
                 }
-            }
-            if(HandleKey[X] == 1){
-                AGV_HandleRunMode = Skewing;
-                ROS_INFO("切换成斜移");
-                while(true){
-                    delay_rate.sleep();
-                    ros::spinOnce();
-                    if(HandleKey[X] == 0)
-                        break;
+                if(HandleKey[X] == 1){
+                    AGV_HandleRunMode = Skewing;
+                    ROS_INFO("切换成斜移");
+                    while(true){
+                        delay_rate.sleep();
+                        ros::spinOnce();
+                        if(HandleKey[X] == 0)
+                            break;
+                    }
                 }
-            }
-            if(HandleKey[Y] == 1){
-                AGV_HandleRunMode = Spin;
-                ROS_INFO("切换成自旋");
-                while(true){
-                    delay_rate.sleep();
-                    ros::spinOnce();
-                    if(HandleKey[Y] == 0)
-                        break;
+                if(HandleKey[Y] == 1){
+                    AGV_HandleRunMode = Spin;
+                    ROS_INFO("切换成自旋");
+                    while(true){
+                        delay_rate.sleep();
+                        ros::spinOnce();
+                        if(HandleKey[Y] == 0)
+                            break;
+                    }
                 }
-            }
-            
-            // 修改速度极限
-            if(HandleRocker[KX] > 0.5){
-                while(true){
-                    delay_rate.sleep();
-                    ros::spinOnce();
-                    if(HandleRocker[KX] < 0.5)
-                        break;
+                
+                // 修改速度极限
+                if(HandleRocker[KX] > 0.5){
+                    while(true){
+                        delay_rate.sleep();
+                        ros::spinOnce();
+                        if(HandleRocker[KX] < 0.5)
+                            break;
+                    }
+                    AGV_limits[0] += 0.1;
+                    if(AGV_limits[0] > AGV_limits[4])
+                        AGV_limits[0] = AGV_limits[4];
                 }
-                AGV_limits[0] += 0.1;
-                if(AGV_limits[0] > AGV_limits[4])
-                    AGV_limits[0] = AGV_limits[4];
-            }
-            else if(HandleRocker[KX] < -0.5){
-                while(true){
-                    delay_rate.sleep();
-                    ros::spinOnce();
-                    if(HandleRocker[KX] > -0.5)
-                        break;
+                else if(HandleRocker[KX] < -0.5){
+                    while(true){
+                        delay_rate.sleep();
+                        ros::spinOnce();
+                        if(HandleRocker[KX] > -0.5)
+                            break;
+                    }
+                    AGV_limits[0] -= 0.1;
+                    if(AGV_limits[0] < 0.1)
+                        AGV_limits[0] = 0.1;
                 }
-                AGV_limits[0] -= 0.1;
-                if(AGV_limits[0] < 0.1)
-                    AGV_limits[0] = 0.1;
-            }
 
-            if(HandleRocker[KY] > 0.5){
-                while(true){
-                    delay_rate.sleep();
-                    ros::spinOnce();
-                    if(HandleRocker[KY] < 0.5)
-                        break;
+                if(HandleRocker[KY] > 0.5){
+                    while(true){
+                        delay_rate.sleep();
+                        ros::spinOnce();
+                        if(HandleRocker[KY] < 0.5)
+                            break;
+                    }
+                    AGV_limits[1] += 10./180*EIGEN_PI;
+                    if(AGV_limits[1] > AGV_limits[5])
+                        AGV_limits[1] = AGV_limits[5];
                 }
-                AGV_limits[1] += 10./180*EIGEN_PI;
-                if(AGV_limits[1] > AGV_limits[5])
-                    AGV_limits[1] = AGV_limits[5];
-            }
-            else if(HandleRocker[KY] < -0.5){
-                while(true){
-                    delay_rate.sleep();
-                    ros::spinOnce();
-                    if(HandleRocker[KY] > -0.5)
-                        break;
+                else if(HandleRocker[KY] < -0.5){
+                    while(true){
+                        delay_rate.sleep();
+                        ros::spinOnce();
+                        if(HandleRocker[KY] > -0.5)
+                            break;
+                    }
+                    AGV_limits[1] -= 10./180*EIGEN_PI;
+                    if(AGV_limits[1] < 10./180*EIGEN_PI)
+                        AGV_limits[1] = 10./180*EIGEN_PI;
                 }
-                AGV_limits[1] -= 10./180*EIGEN_PI;
-                if(AGV_limits[1] < 10./180*EIGEN_PI)
-                    AGV_limits[1] = 10./180*EIGEN_PI;
-            }
 
-            AGV_Control(HandleRocker[LX], HandleRocker[RY]);
-            
-            // ROS_INFO("--------------------------------------------------\r\n");
+                AGV_Control(HandleRocker[LX], HandleRocker[RY]);
+                
+                // ROS_INFO("--------------------------------------------------\r\n");
+            }
+            else
+                AGV_Control(0, 0);
             
         }
         
