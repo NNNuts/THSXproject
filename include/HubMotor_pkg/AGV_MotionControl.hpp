@@ -190,31 +190,10 @@ public:
     // int PathNum = 16;
 
     //设置路径点
-    double Path[100][2] = { 0, 0,
-                        0.154965, -2.77412, 
-                        1.24761, -3.60266, 
-                        2.69559, -2.95119, 
-                        3.62408, -1.54128, 
-                        5.58529, -1.64915, 
-                        6.98535, -2.14833, 
-                        9.03334, -2.25877, 
-                        10.7538, -1.59706, 
-                        11.2096, -0.487526, 
-                        11.3754, 0.768721, 
-                        11.0217, 1.7256, 
-                        9.2451, 2.64715, 
-                        7.28888, 2.82914, 
-                        5.6598, 2.68743, 
-                        4.67905, 2.16159, 
-                        3.84302, 1.47399, 
-                        3.02819, 0.313659, 
-                        1.70459, -0.0859179, 
-                        0.685601, -0.30961, 
-                        0.368457, -1.297, 
-                        }; 
+    double Path[100][2];
                             
     // 路径点数
-    int PathNum = 20;
+    int PathNum;
 
     // 路径更随模式
     enum PathFollowingModType{
@@ -293,7 +272,7 @@ public:
     // PID DirectionPid;
 
     ros::Publisher AGV_control_pub, PathGoalSet_pub;
-    ros::Subscriber LidarOdo_sub, Path_sub;
+    // ros::Subscriber LidarOdo_sub, Path_sub;
     // ros::NodeHandle nh,nhPart;
 
     // ros::Rate delay_rate(1000);
@@ -656,6 +635,7 @@ public:
 
     // 设置路径
     void pathSet(int num, double PathSet[100][2]){
+        PathNum = num;
         for(int i=0; i<=num; i++){
             Path[i][0] = PathSet[i][0];
             Path[i][1] = PathSet[i][1];
@@ -664,50 +644,58 @@ public:
 
     // 启动严格模式
     void setPathFollowing_Strict(bool Bool = false){
-        if(Bool)
+        if(Bool){
             PathFollowingState = PathFollowing_Strict;
-        else
+            ROS_INFO("切换为严格模式");
+            cout<<"切换为严格模式"<<endl;
+        }
+        else{
             PathFollowingState = PathFollowing_Flesibility;
+            ROS_INFO("切换为柔顺模式");
+            cout<<"切换为柔顺模式"<<endl;
+        }
     }
 
     // 系统初始化
-    void systemInit(int argc, char **argv){
-        ros::init(argc, argv, "MotionControl");
-        ros::NodeHandle nh;
+    // void systemInit(int argc, char **argv){
+    //     ros::init(argc, argv, "MotionControl");
+    //     ros::NodeHandle nh;
 
-        //创建局部句柄，实例化node
-        ros::NodeHandle nhPart("~");  
-        // nh = A;
-        // nhPart = B;
-        SpeedPid.kp = PID_spd[0];
-        SpeedPid.kp = PID_spd[1];
-        SpeedPid.kp = PID_spd[2];
-        DirectionPid.kp = PID_dir[0];
-        DirectionPid.kp = PID_dir[1];
-        DirectionPid.kp = PID_dir[2];
+    //     //创建局部句柄，实例化node
+    //     ros::NodeHandle nhPart("~");  
+    //     // nh = A;
+    //     // nhPart = B;
+    //     SpeedPid.kp = PID_spd[0];
+    //     SpeedPid.ki = PID_spd[1];
+    //     SpeedPid.kd = PID_spd[2];
+    //     DirectionPid.kp = PID_dir[0];
+    //     DirectionPid.ki = PID_dir[1];
+    //     DirectionPid.kd = PID_dir[2];
+    //     // cout<<PID_spd[0]<<" "<<SpeedPid.kp<<endl;
 
-        nhPart.getParam("goal_x", PathGoal[0]);
-        nhPart.getParam("goal_y", PathGoal[1]);
+    //     nhPart.getParam("goal_x", PathGoal[0]);
+    //     nhPart.getParam("goal_y", PathGoal[1]);
     
-        AGV_control_pub = nh.advertise<std_msgs::Float32MultiArray>("AgvControl", 1000);
-        // ros::Subscriber LidarOdo_sub = nh.subscribe("odom", 1000, LidarOdoCallback);
-        // ros::Subscriber LidarOdo_sub = nh.subscribe("Odometry", 1000, LidarOdoCallback);
-        LidarOdo_sub = nh.subscribe("global_localization", 1000, &AGV_MotionControl::LidarOdoCallback, this);
+    //     AGV_control_pub = nh.advertise<std_msgs::Float32MultiArray>("AgvControl", 1000);
+    //     // ros::Subscriber LidarOdo_sub = nh.subscribe("odom", 1000, LidarOdoCallback);
+    //     // ros::Subscriber LidarOdo_sub = nh.subscribe("Odometry", 1000, LidarOdoCallback);
+    //     LidarOdo_sub = nh.subscribe("global_localization", 1000, &AGV_MotionControl::LidarOdoCallback, this);
         
-        Path_sub = nh.subscribe("Path", 1000, &AGV_MotionControl::PathResiveCallBack, this);
-        PathGoalSet_pub = nh.advertise<std_msgs::Float32MultiArray>("start_goal", 1000);
+    //     Path_sub = nh.subscribe("Path", 1000, &AGV_MotionControl::PathResiveCallBack, this);
+    //     PathGoalSet_pub = nh.advertise<std_msgs::Float32MultiArray>("start_goal", 1000);
 
-        AGV_Move_State = AGV_Move_Stop;
-        Path_State     = Path_State_Stop;
-        PathFollowingState = PathFollowing_Flesibility;
-        ros::Rate delay_rate(1000);
-        setlocale(LC_ALL, "");
-        ROS_INFO("等待AGV定位");
-        while(AGV_states[0]>5000 || AGV_states[1]>5000){
-            delay_rate.sleep();
-            ros::spinOnce();
-        }    
-    }
+    //     AGV_Move_State = AGV_Move_Stop;
+    //     Path_State     = Path_State_Stop;
+    //     PathFollowingState = PathFollowing_Flesibility;
+    //     ros::Rate delay_rate(1000);
+    //     setlocale(LC_ALL, "");
+    //     ROS_INFO("等待AGV定位");
+    //     while(AGV_states[0]>5000 || AGV_states[1]>5000){
+    //         delay_rate.sleep();
+    //         ros::spinOnce();
+    //     }    
+    //     ROS_INFO("AGV定位成功,当前位置为: %f, %f", AGV_states[0], AGV_states[1]);
+    // }
 
     // 路径初始化
     void pathInit(void)
@@ -723,7 +711,46 @@ public:
         // ROS_INFO("AGV定位成功,当前位置为: %f, %f", AGV_states[0], AGV_states[1]);
     }
 
-    void run(void){
+    void run(int argc, char **argv){
+        ros::init(argc, argv, "MotionControl");
+        ros::NodeHandle nh;
+
+        //创建局部句柄，实例化node
+        ros::NodeHandle nhPart("~");  
+        // nh = A;
+        // nhPart = B;
+        SpeedPid.kp = PID_spd[0];
+        SpeedPid.ki = PID_spd[1];
+        SpeedPid.kd = PID_spd[2];
+        DirectionPid.kp = PID_dir[0];
+        DirectionPid.ki = PID_dir[1];
+        DirectionPid.kd = PID_dir[2];
+        // cout<<PID_spd[0]<<" "<<SpeedPid.kp<<endl;
+
+        nhPart.getParam("goal_x", PathGoal[0]);
+        nhPart.getParam("goal_y", PathGoal[1]);
+    
+        AGV_control_pub = nh.advertise<std_msgs::Float32MultiArray>("AgvControl", 1000);
+        // ros::Subscriber LidarOdo_sub = nh.subscribe("odom", 1000, LidarOdoCallback);
+        // ros::Subscriber LidarOdo_sub = nh.subscribe("Odometry", 1000, LidarOdoCallback);
+        ros::Subscriber LidarOdo_sub = nh.subscribe("global_localization", 1000, &AGV_MotionControl::LidarOdoCallback, this);
+        
+        ros::Subscriber Path_sub = nh.subscribe("Path", 1000, &AGV_MotionControl::PathResiveCallBack, this);
+        PathGoalSet_pub = nh.advertise<std_msgs::Float32MultiArray>("start_goal", 1000);
+
+        AGV_Move_State = AGV_Move_Stop;
+        Path_State     = Path_State_Stop;
+        // PathFollowingState = PathFollowing_Flesibility;
+        ros::Rate delay_rate(1000);
+        setlocale(LC_ALL, "");
+        ROS_INFO("等待AGV定位");
+        while(AGV_states[0]>5000 || AGV_states[1]>5000){
+            delay_rate.sleep();
+            ros::spinOnce();
+        }    
+        ROS_INFO("AGV定位成功,当前位置为: %f, %f", AGV_states[0], AGV_states[1]);
+
+
         pathInit();
         // ROS_INFO("Warning!");
         // ROS_INFO("运控启动");
@@ -735,8 +762,11 @@ public:
         ros::Rate Delay_rate(10);
         
         while (ros::ok()){
+            ros::spinOnce();
+            loop_rate.sleep();
             if(PathFollowingState == PathFollowing_Flesibility){
                 realTimePathPointCal();
+                ROS_INFO("柔顺模式 当前目标点 第%d个 为 %f %f",realTimePathPointNum, realTimePathPoint[0],realTimePathPoint[1]);
                 CalAGVERR();
                 judgeAGVState(); 
                 AGV_ConCal();
@@ -748,24 +778,29 @@ public:
                     Path[0][0] = AGV_states[0];
                     Path[0][1] = AGV_states[1];
                     pathInit();
+                    ROS_INFO("路径重启");
                 }
                 if(Path_State != Path_State_Stop){
                     if(!realTimePathPointNum ){
                         realTimePathPointNum++;
                         realTimePathPoint[0] = Path[realTimePathPointNum][0];
                         realTimePathPoint[1] = Path[realTimePathPointNum][1];
+                        
                     }
+                    // ROS_INFO("严格模式 当前目标点 第%d个 为 %f %f",realTimePathPointNum, realTimePathPoint[0],realTimePathPoint[1]);
                     CalAGVERR();
                     // ROS_INFO("PathTime %f", PathTime);
                     if(AGV_Move_State == AGV_Move_Ackermann && sqrt(AGV_ERR[0]*AGV_ERR[0])<0.10)
                     {
+                        
                         realTimePathPointNum++;
                         if(realTimePathPointNum > PathNum){
                             realTimePathPointNum = PathNum;
                             Path_State = Path_State_Stop;
-                            
+                            ROS_INFO("路径结束");
                         }
                         else{
+                            ROS_INFO("开始自旋");
                             realTimePathPoint[0] = Path[realTimePathPointNum][0];
                             realTimePathPoint[1] = Path[realTimePathPointNum][1];
                             AGV_Move_State = AGV_Move_Spin;
@@ -794,8 +829,11 @@ public:
                                 ros::spinOnce();
                                 Delay_rate.sleep();
                             }
+                            ROS_INFO("结束自旋");
                         }   
                     }   
+                    // ROS_INFO("control speed is: %f, angular is %f", AGV_control_state[0],AGV_control_state[1]*180/3.1415);
+                    // cout<<SpeedPid.kp<<endl;
                     AGV_ConCal();
                 }
             }
@@ -805,13 +843,14 @@ public:
             AGV_control_pub.publish(msg);
             // ROS_INFO("控制模式为: %d, %d", AGV_Move_State, Path_State);
             ROS_INFO("当前位置为: %f, %f, %f", AGV_states[0], AGV_states[1], AGV_states[2]*180/3.1415);
-            if(Path_State != Path_State_Stop)
+            if(Path_State != Path_State_Stop){
                 ROS_INFO("目标位置为: %f, %f", realTimePathPoint[0], realTimePathPoint[1]);
-            // ROS_INFO("control speed is: %f, angular is %f", AGV_control_state[0],AGV_control_state[1]*180/3.1415);
+                ROS_INFO("control speed is: %f, angular is %f", AGV_control_state[0],AGV_control_state[1]*180/3.1415);
+            }
             else if(Path_State == Path_State_Stop)
                 ROS_INFO("等待路径发布");
-            ros::spinOnce();
-            loop_rate.sleep();
+            // ros::spinOnce();
+            // loop_rate.sleep();
         }
     }
 

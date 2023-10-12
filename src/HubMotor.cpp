@@ -251,14 +251,23 @@ void AGV_Control(double speed, double dir){
         double dir_leftFront,dir_rightFront,dir_leftBack,dir_rightBack;
 
         if(speed > AGV_states[0]){
-            AGV_states[0] += AGV_limits[2] / ControlHz;
-            if(AGV_states[0] > speed)
-                AGV_states[0] = speed;
+            // 非梯度
+            AGV_states[0] = speed;
+
+            // 梯度加速
+            // AGV_states[0] += AGV_limits[2] / ControlHz;
+            // if(AGV_states[0] > speed)
+            //     AGV_states[0] = speed;
         }
         else if(speed < AGV_states[0]){
-            AGV_states[0] -= AGV_limits[2] / ControlHz;
-            if(AGV_states[0] < speed)
-                AGV_states[0] = speed;
+
+            // 非梯度
+            AGV_states[0] = speed;
+
+            // 梯度降速
+            // AGV_states[0] -= AGV_limits[2] / ControlHz;
+            // if(AGV_states[0] < speed)
+            //     AGV_states[0] = speed;
         }
         speed = AGV_states[0];
 
@@ -390,13 +399,14 @@ void AGV_Mode_Switching(void){
         if(AGV_Control_Mode == AGV_Control_Procedure){
             AGV_Control_Mode = AGV_Control_Handle;
             ROS_INFO("切换为手柄控制");
-
         }
         else if(AGV_Control_Mode == AGV_Control_Handle){
             AGV_Control_Mode = AGV_Control_Procedure;
             ROS_INFO("切换为程序控制");
         }
         AGV_Control(0, 0);
+        for(int i=1;i<=8;i++)
+            AgvCommond[i] = 0;
         while(true){
             delay_rate.sleep();
             ros::spinOnce();

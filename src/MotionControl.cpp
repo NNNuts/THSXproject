@@ -711,10 +711,10 @@ int main(int argc, char **argv)
 {
     
 
-    AGV.systemInit(argc, argv);
+    // AGV.systemInit(argc, argv);
     AGV.pathSet(PathNum,Path);
     AGV.setPathFollowing_Strict(true); // true 和 false 对应严格模式启动与关闭
-    AGV.run();
+    AGV.run(argc, argv);
 
     // AGV_Move_State = AGV_Move_Stop;
     // Path_State     = Path_State_Stop;
