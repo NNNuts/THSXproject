@@ -1,4 +1,4 @@
-#include "HubMotor.hpp"
+#include "HubMotor_pkg/HubMotor.hpp"
 #include "ros/ros.h"
 #include "std_msgs/Float32MultiArray.h"
 #include "sensor_msgs/Joy.h"
@@ -16,7 +16,8 @@
 #include <condition_variable>
 #include <mutex>
 #include "HubMotor_pkg/PID.hpp"
-#include "HubMotor_pkg/serialPort/SerialPort.h"
+
+// #include "HubMotor_pkg/serialPort/SerialPort.h"
 
 
 #define msleep(ms)  usleep((ms)*1000)
@@ -135,7 +136,10 @@ enum AGVControlMode{
 // MotorCmd    cmd;
 // MotorData   dataBack;
 
+
 // void setUnitreeMotor(int ID,double rad){
+//     uint8_t *p;
+    
 //     cmd.motorType = MotorType::GO_M8010_6;
 //     cmd.id    = ID;
 //     cmd.mode  = 1;
@@ -144,7 +148,11 @@ enum AGVControlMode{
 //     cmd.Pos   = rad * 6.33;
 //     cmd.W     = 0;
 //     cmd.T     = 0.00;
-//     serial.sendRecv(&cmd,&dataBack);
+//     // serial.sendRecv(&cmd,&dataBack);
+//     p = (uint8_t *)cmd.get_motor_send_data();
+//     for(int i =0; i<17; i++)
+//       printf("0X%02X ", *p++);
+    
 // }
 
 void HubMotorCallback(const std_msgs::Float32MultiArray::ConstPtr& msg){
@@ -425,6 +433,9 @@ ros::Publisher AgvOdometerSpeed_pub;
 
 int main(int argc, char* argv[])
 {
+    // setUnitreeMotor(0,1);
+    // exit(0);
+
     ros::init(argc, argv, "Agv");  //解析参数，命名结点
     //创建全局句柄，实例化node
     ros::NodeHandle nh;  
