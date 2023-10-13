@@ -60,7 +60,8 @@ add_executable(control_mode2 src/control_mode2.cpp)
 add_executable(control_mode3 src/control_mode3.cpp)
 add_executable(control_mode4 src/control_mode4.cpp)
 add_executable(control_mode5 src/control_mode5.cpp)
-add_executable(HubMotor src/HubMotor.cpp src/Can2Usb2.0.cpp)
+# add_executable(HubMotor src/HubMotor.cpp src/Can2Usb2.0.cpp)
+add_executable(HubMotor src/HubMotor.cpp)
 
 add_executable(MotionControl src/MotionControl.cpp )
 
@@ -101,8 +102,8 @@ target_link_libraries(control_mode5
 target_link_libraries(HubMotor 
  ${catkin_LIBRARIES}
  libpthread.so
- libcontrolcan.so
- #libUnitreeMotorSDK_M80106_Linux64.so
+#  libcontrolcan.so
+#  libUnitreeMotorSDK_M80106_Linux64.so
  #libcontrolcan.so 
  #${PROJECT_SOURCE_DIR}/lib/lib_emuc2_64.a
 )
