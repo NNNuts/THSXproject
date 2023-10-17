@@ -16,12 +16,15 @@
 #include <condition_variable>
 #include <mutex>
 #include "HubMotor_pkg/PID.hpp"
+#include "HubMotor_pkg/4M485.h"
 
-// #include "HubMotor_pkg/serialPort/SerialPort.h"
+#include "HubMotor_pkg/serialPort/SerialPort.h"
+#include <thread>
 
 
 #define msleep(ms)  usleep((ms)*1000)
 
+using namespace dst_ccms_api;
 
 HubMotor rob;
 double ControlHz = 20;
@@ -132,28 +135,29 @@ enum AGVControlMode{
 }AGV_Control_Mode;
 
 // 宇树电机相关
-// SerialPort  serial("/dev/ttyUSB0");
-// MotorCmd    cmd;
-// MotorData   dataBack;
+SerialPort  serial("/dev/ttyUSB0");
+MotorCmd    cmd;
+MotorData   dataBack;
 
 
-// void setUnitreeMotor(int ID,double rad){
-//     uint8_t *p;
+void setUnitreeMotor(int ID,double rad){
+    uint8_t *p;
     
-//     cmd.motorType = MotorType::GO_M8010_6;
-//     cmd.id    = ID;
-//     cmd.mode  = 1;
-//     cmd.K_P   = 0.3;
-//     cmd.K_W   = 0.01;
-//     cmd.Pos   = rad * 6.33;
-//     cmd.W     = 0;
-//     cmd.T     = 0.00;
-//     // serial.sendRecv(&cmd,&dataBack);
-//     p = (uint8_t *)cmd.get_motor_send_data();
-//     for(int i =0; i<17; i++)
-//       printf("0X%02X ", *p++);
+    cmd.motorType = MotorType::GO_M8010_6;
+    cmd.id    = ID;
+    cmd.mode  = 1;
+    cmd.K_P   = 1;
+    cmd.K_W   = 0.00;
+    cmd.Pos   = rad * 6.33;
+    cmd.W     = 0;
+    cmd.T     = 0.00;
+    serial.sendRecv(&cmd,&dataBack);
+    p = (uint8_t *)cmd.get_motor_send_data();
+    for(int i =0; i<17; i++)
+      printf("0X%02X ", *p++);
+    cout<<endl;
     
-// }
+}
 
 void HubMotorCallback(const std_msgs::Float32MultiArray::ConstPtr& msg){
     // cout<<"ok"<<endl;
@@ -433,8 +437,66 @@ ros::Publisher AgvOdometerSpeed_pub;
 
 int main(int argc, char* argv[])
 {
-    // setUnitreeMotor(0,1);
-    // exit(0);
+//     comm_service Uart485;
+//     comm_service Uart485_2;
+//     cout<<"fd:" << Uart485.CommOpen("/dev/ttyFP0")<<endl;
+//     cout<<"comminit:" << Uart485.CommInit(9600, 0, 8, 1, 'N')<<endl;
+//     cout<<"fd_2:" << Uart485_2.CommOpen("/dev/ttyFP1")<<endl;
+//     cout<<"comminit_2:" << Uart485_2.CommInit(9600, 0, 8, 1, 'N')<<endl;
+
+//     usleep(1000000);
+
+//     char sendData[17] = {1};
+//     cout<<Uart485.CommSend(sendData, 17)<<endl;
+
+//  //   cout<<"fd:" << Uart485.CommOpen("/dev/ttyFP1")<<endl;
+//   //  cout<<"comminit:" << Uart485.CommInit(4000000, 0, 8, 1, 'N')<<endl;
+//     // SerialPort _comUart("/dev/ttyUSB0");
+//     char data[100] = {0};
+
+//     for(int i =0; i<17; i++)
+//       printf("0X%02X ", sendData[i]);
+//     cout<<endl;
+
+//     // setUnitreeMotor(4, 1);
+//     usleep(1000000);
+//     cout<<Uart485.CommRecv(data, 10)<<endl;
+
+//     // std::thread _thread([]{
+//     // setUnitreeMotor(0,1);
+//     // });
+//     // _thread.detach();
+//     // char   _dataBack[100] = {0};
+
+//     // int recvSize = 0;
+//     // for(int i = 0; i < 10 && recvSize == 0; i++)
+//     // {
+//     //     Uart485.CommRecv(_dataBack, 17);
+//     //     std::this_thread::sleep_for(std::chrono::seconds(1));
+//     // }
+   
+    
+//     cout<< "CommRecv:" << std::endl;//Uart485.CommRecv(data, sizeof(char))<<endl;
+//     for(int i =0; i<17; i++)
+//       printf("0X%02X ", data[i]);
+//     cout<<endl;
+//     exit(0);
+
+    setUnitreeMotor(1, 0.8);
+    setUnitreeMotor(2, 6);
+    setUnitreeMotor(3, 1);
+    setUnitreeMotor(4, 2);
+    double rad;
+    int id;
+    while(true){
+        cin>>id>>rad;
+        cout<<id<<" set "<<rad<<endl;
+        setUnitreeMotor(id,rad);
+        // 1 0.8
+        // 2 -0.1
+        // 4 0.05
+    }
+    
 
     ros::init(argc, argv, "Agv");  //解析参数，命名结点
     //创建全局句柄，实例化node
