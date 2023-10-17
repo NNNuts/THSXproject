@@ -16,7 +16,7 @@
 #include <condition_variable>
 #include <mutex>
 #include "HubMotor_pkg/PID.hpp"
-#include "HubMotor_pkg/4M485.h"
+// #include "HubMotor_pkg/4M485.h"
 
 #include "HubMotor_pkg/serialPort/SerialPort.h"
 #include <thread>
@@ -24,7 +24,7 @@
 
 #define msleep(ms)  usleep((ms)*1000)
 
-using namespace dst_ccms_api;
+// using namespace dst_ccms_api;
 
 HubMotor rob;
 double ControlHz = 20;
@@ -139,6 +139,7 @@ SerialPort  serial("/dev/ttyUSB0");
 MotorCmd    cmd;
 MotorData   dataBack;
 
+double turnBias[4] = {0.78, 0.1, 0.86, 0.2};
 
 void setUnitreeMotor(int ID,double rad){
     uint8_t *p;
@@ -146,17 +147,23 @@ void setUnitreeMotor(int ID,double rad){
     cmd.motorType = MotorType::GO_M8010_6;
     cmd.id    = ID;
     cmd.mode  = 1;
-    cmd.K_P   = 1;
-    cmd.K_W   = 0.00;
+    cmd.K_P   = 2;
+    cmd.K_W   = 0.03;
     cmd.Pos   = rad * 6.33;
     cmd.W     = 0;
     cmd.T     = 0.00;
     serial.sendRecv(&cmd,&dataBack);
-    p = (uint8_t *)cmd.get_motor_send_data();
-    for(int i =0; i<17; i++)
-      printf("0X%02X ", *p++);
-    cout<<endl;
-    
+    // p = (uint8_t *)cmd.get_motor_send_data();
+    // for(int i =0; i<17; i++)
+    //   printf("0X%02X ", *p++);
+    // cout<<endl;
+}
+
+void setTurnMotor(double rad1, double rad2, double rad3, double rad4){
+    setUnitreeMotor(1, -rad1 + turnBias[0]);
+    setUnitreeMotor(2, -rad2 + turnBias[1]);
+    setUnitreeMotor(3, -rad3 + turnBias[2]);
+    setUnitreeMotor(4, -rad4 + turnBias[3]);
 }
 
 void HubMotorCallback(const std_msgs::Float32MultiArray::ConstPtr& msg){
@@ -321,21 +328,31 @@ void AGV_Control(double speed, double dir){
         }
 
         if(Mode == Speed){
+            
+            // rob.motorSetSpeed(1,0);
+            
+            // exit(0);
             rob.motorSetSpeed(1, speed_left);
             rob.motorSetSpeed(2, speed_left);
-            rob.motorSetSpeed(3, speed_left);
+            rob.motorSetSpeed(3, speed_right);
+            // auto  tp_1 = std::chrono::steady_clock::now();
             rob.motorSetSpeed(4, speed_right);
+            // auto  tp_2 = std::chrono::steady_clock::now();
+            // auto track_time = std::chrono::duration_cast<std::chrono::duration<double>>(tp_2- tp_1).count();
+            // std::cout << "time:" << track_time << "s" << std::endl;
             // ROS_INFO("Set HubMotor:speed = [%f],[%f]", speed_left, speed_right);
         }
-        rob.stepMotorSetPosition(5, dir_leftFront);
-        rob.stepMotorSetPosition(6, dir_leftBack);
-        rob.stepMotorSetPosition(7, dir_rightFront);
-        rob.stepMotorSetPosition(8, dir_rightBack);
+        // rob.stepMotorSetPosition(5, dir_leftFront);
+        // rob.stepMotorSetPosition(6, dir_leftBack);
+        // rob.stepMotorSetPosition(7, dir_rightFront);
+        // rob.stepMotorSetPosition(8, dir_rightBack);
+        setTurnMotor(dir_leftFront, dir_leftBack, dir_rightFront, dir_rightBack);
 
         // 宇树电机
         // setUnitreeMotor(1,dir_leftFront);
         // setUnitreeMotor(2,dir_leftFront);
         // setUnitreeMotor(3,dir_leftFront);
+        // ROS_DEBUG("left right %f %f", speed_left, speed_right);
         ROS_DEBUG("AGV 阿克曼运动 %f %f", speed, dir);
     }
     else if(AGV_HandleRunMode == Skewing){
@@ -371,10 +388,11 @@ void AGV_Control(double speed, double dir){
             rob.motorSetSpeed(4, speed);
             // ROS_INFO("Set HubMotor:speed = [%f],[%f]", speed_left, speed_right);
         }
-        rob.stepMotorSetPosition(5, dir);
-        rob.stepMotorSetPosition(6, dir);
-        rob.stepMotorSetPosition(7, dir);
-        rob.stepMotorSetPosition(8, dir);
+        // rob.stepMotorSetPosition(5, dir);
+        // rob.stepMotorSetPosition(6, dir);
+        // rob.stepMotorSetPosition(7, dir);
+        // rob.stepMotorSetPosition(8, dir);
+        setTurnMotor(dir, dir, dir, dir);
 
         // 宇树电机
         // setUnitreeMotor(1,dir);
@@ -385,16 +403,17 @@ void AGV_Control(double speed, double dir){
     else if(AGV_HandleRunMode == Spin){
         speed = dir * AGV_limits[0];
         if(Mode == Speed){
-            rob.motorSetSpeed(1, speed);
-            rob.motorSetSpeed(2, speed);
+            rob.motorSetSpeed(1, -speed);
+            rob.motorSetSpeed(2, -speed);
             rob.motorSetSpeed(3, speed);
             rob.motorSetSpeed(4, speed);
             // ROS_INFO("Set HubMotor:speed = [%f],[%f]", speed_left, speed_right);
         }
-        rob.stepMotorSetPosition(5, 3.1415926535/4*3);
-        rob.stepMotorSetPosition(6, -3.1415926535/4*3);
-        rob.stepMotorSetPosition(7, 3.1415926535/4);
-        rob.stepMotorSetPosition(8, -3.1415926535/4);
+        // rob.stepMotorSetPosition(5, 3.1415926535/4*3);
+        // rob.stepMotorSetPosition(6, -3.1415926535/4*3);
+        // rob.stepMotorSetPosition(7, 3.1415926535/4);
+        // rob.stepMotorSetPosition(8, -3.1415926535/4);
+        setTurnMotor(-3.1415926535/4, 3.1415926535/4, 3.1415926535/4, -3.1415926535/4);
         // 宇树电机
         // setUnitreeMotor(1,3.1415926535/4*3);
         // setUnitreeMotor(2,-3.1415926535/4*3);
@@ -482,20 +501,21 @@ int main(int argc, char* argv[])
 //     cout<<endl;
 //     exit(0);
 
-    setUnitreeMotor(1, 0.8);
-    setUnitreeMotor(2, 6);
-    setUnitreeMotor(3, 1);
-    setUnitreeMotor(4, 2);
-    double rad;
-    int id;
-    while(true){
-        cin>>id>>rad;
-        cout<<id<<" set "<<rad<<endl;
-        setUnitreeMotor(id,rad);
-        // 1 0.8
-        // 2 -0.1
-        // 4 0.05
-    }
+    // setUnitreeMotor(1, 0.8);
+    // setUnitreeMotor(2, 6);
+    // setUnitreeMotor(3, 1);
+    // setUnitreeMotor(4, 2);
+    // setTurnMotor(0, 0, 0, 0);
+    // double rad;
+    // int id;
+    // while(true){
+    //     cin>>id>>rad;
+    //     cout<<id<<" set "<<rad<<endl;
+    //     setUnitreeMotor(id,rad);
+    //     // 1 0.8
+    //     // 2 -0.1
+    //     // 4 0.05
+    // }
     
 
     ros::init(argc, argv, "Agv");  //解析参数，命名结点
@@ -534,6 +554,18 @@ int main(int argc, char* argv[])
     rob.motorDisEnable(2);
     rob.motorDisEnable(3);
     rob.motorDisEnable(4);
+
+    // rob.motorInit(1, Speed);
+    // rob.motorInit(2, Speed);
+    // rob.motorInit(3, Speed);
+    // rob.motorInit(4, Speed);
+
+    // auto  tp_1 = std::chrono::steady_clock::now();
+    // rob.motorSetSpeed(1,0);
+    // auto  tp_2 = std::chrono::steady_clock::now();
+    // auto track_time = std::chrono::duration_cast<std::chrono::duration<double>>(tp_2- tp_1).count();
+    // std::cout << "time:" << track_time << "s" << std::endl;
+    // exit(0);
 
     // ROS_INFO("轮毂电机已连接");
 
@@ -664,11 +696,12 @@ int main(int argc, char* argv[])
             //     rob.motorSetPosition(4, AgvCommond[4]);
             //     // ROS_INFO("Set HubMotor:position = [%f],[%f],[%f],[%f]", AgvCommond[1], AgvCommond[2], AgvCommond[3], AgvCommond[4]);
             // }
-            rob.stepMotorSetPosition(5, AgvCommond[5]);
-            rob.stepMotorSetPosition(6, AgvCommond[6]);
-            rob.stepMotorSetPosition(7, AgvCommond[7]);
+            setTurnMotor(AgvCommond[5], AgvCommond[6], AgvCommond[7], AgvCommond[8]);
+            // rob.stepMotorSetPosition(5, AgvCommond[5]);
+            // rob.stepMotorSetPosition(6, AgvCommond[6]);
+            // rob.stepMotorSetPosition(7, AgvCommond[7]);
             // tp_1 = std::chrono::steady_clock::now();
-            rob.stepMotorSetPosition(8, AgvCommond[8]);
+            // rob.stepMotorSetPosition(8, AgvCommond[8]);
             // tp_2 = std::chrono::steady_clock::now();
             // track_time = std::chrono::duration_cast<std::chrono::duration<double>>(tp_2- tp_1).count();
             // std::cout << "time:" << track_time << "s" << std::endl;
@@ -697,6 +730,14 @@ int main(int argc, char* argv[])
                 }
 
                 if(HandleKey[B] == 1){
+                    if(AGV_HandleRunMode == Spin){
+                        for(int delay=100; delay>0; delay--){
+                            for(int a=0; a<10; a++){
+                                delay_rate.sleep();
+                            }
+                            setTurnMotor(-3.1415926/400*delay,3.1415926/400*delay,3.1415926/400*delay,-3.1415926/400*delay);
+                        }
+                    }
                     AGV_HandleRunMode = Ackermann;
                     ROS_INFO("切换成阿克曼");
                     while(true){
@@ -707,6 +748,14 @@ int main(int argc, char* argv[])
                     }
                 }
                 if(HandleKey[X] == 1){
+                    if(AGV_HandleRunMode == Spin){
+                        for(int delay=100; delay>0; delay--){
+                            for(int a=0; a<10; a++){
+                                delay_rate.sleep();
+                            }
+                            setTurnMotor(-3.1415926/400*delay,3.1415926/400*delay,3.1415926/400*delay,-3.1415926/400*delay);
+                        }
+                    }
                     AGV_HandleRunMode = Skewing;
                     ROS_INFO("切换成斜移");
                     while(true){
@@ -719,6 +768,13 @@ int main(int argc, char* argv[])
                 if(HandleKey[Y] == 1){
                     AGV_HandleRunMode = Spin;
                     ROS_INFO("切换成自旋");
+                    int rad = 3.1415926/4;
+                    for(int delay=0; delay<100; delay++){
+                        for(int a=0; a<10; a++){
+                            delay_rate.sleep();
+                        }
+                        setTurnMotor(-3.1415926/400*delay,3.1415926/400*delay,3.1415926/400*delay,-3.1415926/400*delay);
+                    }
                     while(true){
                         delay_rate.sleep();
                         ros::spinOnce();
