@@ -36,8 +36,8 @@ double odometerPosition[6] = {0, 0, 0, 0, 0, 0};
 // 是否Log Debug
 bool LogDebugEnable = false;
 
-// AGV 轮距
-double  TrackWidth[2] = {490, 500};
+// AGV 轮距 （前后，左右）
+double  TrackWidth[2] = {560, 390};
 
 // AGV 使能模式
 enum AGVEnableModeType{
@@ -122,8 +122,8 @@ enum HandleAxes{
 };
 double HandleRocker[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
-// AGV 手柄运动限制
-double AGV_limits[6] = {0.2, 30./180*EIGEN_PI, 1, 20./180*EIGEN_PI, 1, 60./180*EIGEN_PI};
+// AGV 手柄运动限制       满速  满方向             轮毂加速度  方向加速度         速度极限    方向极限
+double AGV_limits[6] = {0.2, 30./180*EIGEN_PI, 1,        20./180*EIGEN_PI, 1.5,         60./180*EIGEN_PI};
 
 // AGV 手柄运动状态
 double AGV_states[2] = {0, 0};
@@ -271,22 +271,22 @@ void AGV_Control(double speed, double dir){
 
         if(speed > AGV_states[0]){
             // 非梯度
-            AGV_states[0] = speed;
+            // AGV_states[0] = speed;
 
             // 梯度加速
-            // AGV_states[0] += AGV_limits[2] / ControlHz;
-            // if(AGV_states[0] > speed)
-            //     AGV_states[0] = speed;
+            AGV_states[0] += AGV_limits[2] / ControlHz;
+            if(AGV_states[0] > speed)
+                AGV_states[0] = speed;
         }
         else if(speed < AGV_states[0]){
 
             // 非梯度
-            AGV_states[0] = speed;
+            // AGV_states[0] = speed;
 
             // 梯度降速
-            // AGV_states[0] -= AGV_limits[2] / ControlHz;
-            // if(AGV_states[0] < speed)
-            //     AGV_states[0] = speed;
+            AGV_states[0] -= AGV_limits[2] / ControlHz;
+            if(AGV_states[0] < speed)
+                AGV_states[0] = speed;
         }
         speed = AGV_states[0];
 

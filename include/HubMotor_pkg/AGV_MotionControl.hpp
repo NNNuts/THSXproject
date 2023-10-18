@@ -331,8 +331,8 @@ public:
             AGV_states[2] += 2*EIGEN_PI;
 
         //偏移矫正
-        AGV_states[0] -= 0.260 * cos(AGV_states[2]);
-        AGV_states[1] -= 0.260 * cos(AGV_states[2]);
+        AGV_states[0] -= 0.255 * cos(AGV_states[2]);
+        AGV_states[1] -= 0.255 * cos(AGV_states[2]);
         // ROS_INFO("AGV接收位置为: %f, %f", msg->pose.pose.position.x, msg->pose.pose.position.y);
         // ROS_INFO("AGV接收四元素为: %f, %f,%f, %f", msg->pose.pose.orientation.w, msg->pose.pose.orientation.x, msg->pose.pose.orientation.y, msg->pose.pose.orientation.z);
         // ROS_INFO("当前位置为: %f, %f, %f", AGV_states[0], AGV_states[1], AGV_states[2]);
