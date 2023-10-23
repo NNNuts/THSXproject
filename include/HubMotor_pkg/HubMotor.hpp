@@ -147,6 +147,37 @@ public:
     //     usleep(sendSleep);
     // }
     // -----------------------------------------------------------------
+
+    void canSendRemote(int com, int ID){
+        VCI_CAN_OBJ canData;
+        VCI_ClearBuffer(VCI_USBCAN2, 0, com);
+        canData.ID         = ID;
+        canData.SendType   = 1;
+        canData.RemoteFlag = 1;
+        canData.ExternFlag = 0;
+        canData.DataLen    = 0;
+        VCI_Transmit(VCI_USBCAN2, 0, com, &canData, 1);
+        usleep(2000);
+        int dwRel;
+        VCI_CAN_OBJ vco[2500];
+        dwRel = VCI_Receive( VCI_USBCAN2, 0, com, vco,2500,0);
+        if(dwRel){
+            for(int i=0;i<dwRel;i++){
+                // cout << i << " ";
+                cout << "当前电压" << ((double)((short)(vco[i].Data[0] * 256 + vco[i].Data[1])))/100 << "V ";
+                cout << "当前电流" << ((double)((short)(vco[i].Data[2] * 256 + vco[i].Data[3])))/100 << "A ";
+                cout << "剩余容量" << ((double)((short)(vco[i].Data[4] * 256 + vco[i].Data[5])))/100 << "Ah ";
+                // for(int a=0;a<3;a++){
+                //     cout<<(int)vco[i].Data[a]<< " ";
+                // }
+                cout<<endl;
+            }
+        }
+        else
+            cout<<"未接受到返回"<<endl;
+    }
+
+
     void canSend(int com, int ID, int Len, long data, unsigned long pass = 0){
         VCI_CAN_OBJ canData;
         canData.ID         = ID;

@@ -53,7 +53,7 @@ public:
 
 
     // 设置路径目标点
-    double PathGoal[2] = {10, 12};
+    // double PathGoal[2] = {10, 12};
 
     // 设置路径点
     // double Path[100][2] = { 0, 0,
@@ -190,7 +190,7 @@ public:
     // int PathNum = 16;
 
     //设置路径点
-    double Path[100][2];
+    double Path[10000][2];
                             
     // 路径点数
     int PathNum;
@@ -271,7 +271,8 @@ public:
     PID SpeedPid,DirectionPid;
     // PID DirectionPid;
 
-    ros::Publisher AGV_control_pub, PathGoalSet_pub;
+    ros::Publisher AGV_control_pub;
+    // ros::Publisher PathGoalSet_pub;
     // ros::Subscriber LidarOdo_sub, Path_sub;
     // ros::NodeHandle nh,nhPart;
 
@@ -346,7 +347,7 @@ public:
         if(Path_State != Path_State_Stop){
             PathTime += 1.0/ControlHz;
             double PathDistance = PathSpeed * PathTime;
-            for(int i=0; i<PathNum; i++){
+            for(int i=0; i<PathNum-1; i++){
                 if(PathDistance < sqrt((Path[i+1][1]-Path[i][1])*(Path[i+1][1]-Path[i][1])+(Path[i+1][0]-Path[i][0])*(Path[i+1][0]-Path[i][0]))){
                     // 实时路径离散点
                     // realTimePathPoint[0] = Path[i][0] + PathDistance * (Path[i+1][0]-Path[i][0]) / sqrt((Path[i+1][1]-Path[i][1])*(Path[i+1][1]-Path[i][1])+(Path[i+1][0]-Path[i][0])*(Path[i+1][0]-Path[i][0]));
@@ -355,14 +356,16 @@ public:
                     //  目标路径点
                     realTimePathPoint[0] = Path[i+1][0];
                     realTimePathPoint[1] = Path[i+1][1];
+                    realTimePathPointNum = i+2;
 
                     Path_State = Path_State_Run;
                     break;
                 }
                 else{
                     PathDistance -= sqrt((Path[i+1][1]-Path[i][1])*(Path[i+1][1]-Path[i][1])+(Path[i+1][0]-Path[i][0])*(Path[i+1][0]-Path[i][0]));
-                    realTimePathPoint[0] = Path[PathNum][0];
-                    realTimePathPoint[1] = Path[PathNum][1];
+                    realTimePathPoint[0] = Path[PathNum-1][0];
+                    realTimePathPoint[1] = Path[PathNum-1][1];
+                    realTimePathPointNum = PathNum;
                     Path_State = Path_State_WatingStop;
                 }
             }
@@ -463,8 +466,8 @@ public:
             AGV_ERR[1] += 2*EIGEN_PI;
 
         // 判断是否需要倒车
-        // if(AGV_ERR[1] > EIGEN_PI/2 || AGV_ERR[1] < -EIGEN_PI/2)
-        //     AGV_ERR[0] = -AGV_ERR[0];
+        if(AGV_ERR[1] > EIGEN_PI/2 || AGV_ERR[1] < -EIGEN_PI/2)
+            AGV_ERR[0] = -AGV_ERR[0];
 
     }
 
@@ -492,9 +495,9 @@ public:
                 Path_State = Path_State_Stop;
 
                 // 连续运行
-                Path[0][0] = AGV_states[0];
-                Path[0][1] = AGV_states[1];
-                pathInit();
+                // Path[0][0] = AGV_states[0];
+                // Path[0][1] = AGV_states[1];
+                // pathInit();
             }
         }
     }
@@ -623,14 +626,19 @@ public:
     {
         if(Path_State == Path_State_Stop){
             PathNum = msg->data.at(0);
-            for(int i=0; i<PathNum-1; i++){
+            for(int i=0; i<PathNum; i++){
                 Path[i][0] = msg->data.at(2*i + 1);
                 Path[i][1] = msg->data.at(2*i + 2);
+                // cout<<Path[i][0]<<" "<<Path[i][1]<<endl;
             }
             pathInit();
-            ROS_INFO("%d", PathNum);
+            // ROS_INFO("%d", PathNum);
             ROS_INFO("路径接收成功");
         }
+        // cout<<msg->data.size()<<endl;
+        // ROS_INFO("%f", Path[PathNum-1][0]);
+        // cout<<"Path num"<<
+        // exit(0);
     }
 
     // 设置路径
@@ -727,22 +735,24 @@ public:
         DirectionPid.kd = PID_dir[2];
         // cout<<PID_spd[0]<<" "<<SpeedPid.kp<<endl;
 
-        nhPart.getParam("goal_x", PathGoal[0]);
-        nhPart.getParam("goal_y", PathGoal[1]);
+        // nhPart.getParam("goal_x", PathGoal[0]);
+        // nhPart.getParam("goal_y", PathGoal[1]);
     
         AGV_control_pub = nh.advertise<std_msgs::Float32MultiArray>("AgvControl", 1000);
         // ros::Subscriber LidarOdo_sub = nh.subscribe("odom", 1000, LidarOdoCallback);
         // ros::Subscriber LidarOdo_sub = nh.subscribe("Odometry", 1000, LidarOdoCallback);
         ros::Subscriber LidarOdo_sub = nh.subscribe("global_localization", 1000, &AGV_MotionControl::LidarOdoCallback, this);
         
-        ros::Subscriber Path_sub = nh.subscribe("Path", 1000, &AGV_MotionControl::PathResiveCallBack, this);
-        PathGoalSet_pub = nh.advertise<std_msgs::Float32MultiArray>("start_goal", 1000);
+        ros::Subscriber Path_sub = nh.subscribe("path", 1000, &AGV_MotionControl::PathResiveCallBack, this);
+        // PathGoalSet_pub = nh.advertise<std_msgs::Float32MultiArray>("start_goal", 1000);
 
         AGV_Move_State = AGV_Move_Stop;
         Path_State     = Path_State_Stop;
         // PathFollowingState = PathFollowing_Flesibility;
         ros::Rate delay_rate(1000);
         setlocale(LC_ALL, "");
+
+
         ROS_INFO("等待AGV定位");
         while(AGV_states[0]>5000 || AGV_states[1]>5000){
             delay_rate.sleep();
@@ -751,7 +761,12 @@ public:
         ROS_INFO("AGV定位成功,当前位置为: %f, %f", AGV_states[0], AGV_states[1]);
 
 
-        pathInit();
+        // pathInit();
+
+        AGV_Move_State = AGV_Move_Stop;
+        // HubMotor_Enable = true;
+        // TurnMotor_Enable = true;
+        Path_State = Path_State_Stop;
         // ROS_INFO("Warning!");
         // ROS_INFO("运控启动");
         ros::Rate loop_rate(ControlHz);

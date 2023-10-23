@@ -135,7 +135,7 @@ enum AGVControlMode{
 }AGV_Control_Mode;
 
 // 宇树电机相关
-SerialPort  serial("/dev/ttyUSB0");
+SerialPort  serial("/dev/ttyUSB1");
 MotorCmd    cmd;
 MotorData   dataBack;
 
@@ -516,6 +516,7 @@ int main(int argc, char* argv[])
     //     // 2 -0.1
     //     // 4 0.05
     // }
+
     
 
     ros::init(argc, argv, "Agv");  //解析参数，命名结点
@@ -549,6 +550,10 @@ int main(int argc, char* argv[])
 
   
     rob.canOpen();
+
+    // rob.canSendRemote(1,0x100);
+
+    // exit(0);
 
     rob.motorDisEnable(1);
     rob.motorDisEnable(2);
