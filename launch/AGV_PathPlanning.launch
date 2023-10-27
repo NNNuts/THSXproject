@@ -4,6 +4,7 @@
         <param name="yaml" value="/home/tenghao/RosWorkSpace/src/HubMotor_pkg/scripts/data/company.yaml" />
     </node> -->
     <node pkg="HubMotor_pkg" name="MotionControl" type="MotionControl" output="screen" required="true">
+        <param name="LogDebugEnable" type="bool" value="true"/>
         <!-- <param name="goal_x" value="5" />
         <param name="goal_y" value="5" /> -->
     </node>

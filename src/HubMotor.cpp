@@ -135,12 +135,11 @@ enum AGVControlMode{
 }AGV_Control_Mode;
 
 // 宇树电机相关
-SerialPort  serial("/dev/ttyUSB1");
+SerialPort  serial("/dev/ttyUSB0");
 MotorCmd    cmd;
 MotorData   dataBack;
 
 double turnBias[4] = {0.78, 0.1, 0.86, 0.2};
-
 void setUnitreeMotor(int ID,double rad){
     uint8_t *p;
     
@@ -550,6 +549,13 @@ int main(int argc, char* argv[])
 
   
     rob.canOpen();
+    // rob.canClean(1);
+    // rob.canSend(1, 0x521, 6, 0x010301010001);
+    // rob.canSend(1, 0x522, 6, 0x020301010001);
+    // // rob.canSend(1, 0x521, 6, 0x0106020A0007);
+    // usleep(50000);
+    // rob.canDisplay(1);
+
 
     // rob.canSendRemote(1,0x100);
 

@@ -61,12 +61,14 @@ public:
 
     static void* staticCan1_get_status(void *param);
 
-    void canClean(int com){
-        CanReadDataNum[com] = 0;
-    }
+    
 
     // 临时注释
     // -----------------------------------------------------------------
+
+    // void canClean(int com){
+    //     CanReadDataNum[com] = 0;
+    // }
 
     // void canOpen(void){
     //     can_fd[0] = socket(AF_CAN, SOCK_RAW, CAN_RAW);
@@ -170,6 +172,26 @@ public:
                 // for(int a=0;a<3;a++){
                 //     cout<<(int)vco[i].Data[a]<< " ";
                 // }
+                cout<<endl;
+            }
+        }
+        else
+            cout<<"未接受到返回"<<endl;
+    }
+
+    void canClean(int com){
+        VCI_ClearBuffer(VCI_USBCAN2, 0, com);
+    }
+
+    void canDisplay(int com){
+        VCI_CAN_OBJ vco[2500];
+        int dwRel;
+        dwRel = VCI_Receive( VCI_USBCAN2, 0, com, vco,2500,0);
+        if(dwRel){
+            for(int i=0;i<dwRel;i++){
+                for(int a=0;a<vco[i].DataLen;a++){
+                    cout<<(int)vco[i].Data[a]<<" ";
+                }
                 cout<<endl;
             }
         }
