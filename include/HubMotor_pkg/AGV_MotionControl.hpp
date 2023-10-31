@@ -130,8 +130,8 @@ public:
     //                   x  y  theta
     double AGV_ERR[3] = {0, 0, 0}; 
     //                     P  I  D  maxChange           maxlimit
-    double PID_X[5]   = {  0.2, 0, 0.1,       1,              0.4};
-    double PID_Y[5]   = {  1, 0, 0,         1,       EIGEN_PI/6};
+    double PID_X[5]   = {0.5, 0, 0.1,       1,              0.4};
+    double PID_Y[5]   = {  3, 0, 0,         1,       EIGEN_PI/6};
     double PID_dir[5] = {  1, 0, 0,         1, 45./180*EIGEN_PI};
 
     // 末端斜移阈值
@@ -819,7 +819,7 @@ public:
         AGV_loc_pub = nh.advertise<std_msgs::Float32MultiArray>("Agv_location", 1000);
         // ros::Subscriber LidarOdo_sub = nh.subscribe("odom", 1000, LidarOdoCallback);
         // ros::Subscriber LidarOdo_sub = nh.subscribe("Odometry", 1000, LidarOdoCallback);
-        ros::Subscriber LidarOdo_sub = nh.subscribe("global_localization", 1000, &AGV_MotionControl::LidarOdoCallback, this);
+        ros::Subscriber LidarOdo_sub = nh.subscribe("cw_loc_imufreq", 1000, &AGV_MotionControl::LidarOdoCallback, this);
         
         ros::Subscriber Path_sub = nh.subscribe("path", 1000, &AGV_MotionControl::PathResiveCallBack, this);
         // PathGoalSet_pub = nh.advertise<std_msgs::Float32MultiArray>("start_goal", 1000);
